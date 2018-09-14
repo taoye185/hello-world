@@ -45,22 +45,22 @@ public class pseudoMain{
 		            for (String cell : nextRecord) { 
 		            	if (columnCount == 1) {	
 		            		capNames[i] = cell; //it is assumed that the first column of the config file contains capabilities name
-		            		System.out.println(cell + " read, " + capNames[i] + " saved in capname");
+//		            		System.out.println(cell + " read, " + capNames[i] + " saved in capname");
 		            	}
 		            	else if (columnCount == 2) {
 		            		capValues[i] = cell;//it is assumed that the second column of the config file contains capabilities value
-		            		System.out.println(cell + " read, " + capValues[i] + " saved in capvalue");
+//		            		System.out.println(cell + " read, " + capValues[i] + " saved in capvalue");
 		            		if (i>0) {
 		            		capabilities.setCapability(capNames[i], capValues[i]); //unless this is title row, set the capabilities
 		            		}
 		            	}
 		            	else {
-		            		  System.out.println("column " + columnCount + ", don't know what to do."); 
+//		            		  System.out.println("column " + columnCount + ", don't know what to do."); 
 		            		  	//it is assumed that the 3rd column (or later) of the config file contains garbage
 		            	}
 		                columnCount ++;
 		            } 
-		            System.out.println(); 
+//		            System.out.println(); 
 		            i++;
 		        } 
 		        csvReader.close();
@@ -81,11 +81,12 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
+//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
 //		mobiledriver.merchantPassword(7,"P27O7FZM2");
-		mobiledriver.enterPIN(5, "123456");
-		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
-		mobiledriver.clickNext(5);
+		mobiledriver.enterEmptyPIN(5);
+//		mobiledriver.enterPIN(5, "123456");
+//		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
+//		mobiledriver.clickNext(5);
 		//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
 
 //		Assert.assertEquals(mobiledriver.getTitle(), "Appium: Mobile App Automation Made Awesome.", "Title Mismatch");
