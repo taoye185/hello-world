@@ -1,3 +1,4 @@
+import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -8,6 +9,8 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.opencsv.CSVReader;
+
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.remote.MobileCapabilityType;
 import io.appium.java_client.AppiumDriver;
@@ -17,8 +20,15 @@ import io.appium.java_client.MobileElement;
 public class pseudoMain{
 	public static PepAndroidDriver<?> mobiledriver;
 
+
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
+		
+		String[] capNames = new String[10];
+		String[] capValues = new String[10];
+
+		String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv";
+
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, "1.9.0");
 		capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, "8.0.0");
@@ -34,7 +44,42 @@ public class pseudoMain{
 		capabilities.setCapability("noReset", true);
 		capabilities.setCapability("newCommandTimeout", 2000);
 //		mobiledriver = new AndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"),capabilities);//把以上配置传到appium服务端并连接手机
+
+		 try { 
+		        // Create an object of filereader 
+		        // class with CSV file as a parameter. 
+		        FileReader filereader = new FileReader(file); 
+		        CSVReader csvReader = new CSVReader(filereader); 
+		        String[] nextRecord; 
+		        int i = 0;
+		        // we are going to read data line by line 
+		        while ((nextRecord = csvReader.readNext()) != null) { 
+		        	int columnCount = 1;
+		            for (String cell : nextRecord) { 
+		            	if (columnCount == 1) {
+		            		capNames[i] = cell;
+		            		System.out.println(cell + " read, " + capNames[i] + " saved in capname");
+		            	}
+		            	else if (columnCount == 2) {
+		            		capValues[i] = cell;
+		            		System.out.println(cell + " read, " + capValues[i] + " saved in capvalue");
+		            	}
+		            	else {
+		            		  System.out.println("column " + columnCount + ", don't know what to do."); 
+		            	}
+		                //System.out.print(cell + "\t"); 
+		                columnCount ++;
+		            } 
+		            System.out.println(); 
+		            i++;
+		        } 
+		    } 
+		    catch (Exception e) { 
+		        e.printStackTrace(); 
+		    } 		
+		
 		mobiledriver = new PepAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities);
+
 	}
 
 	@AfterTest
@@ -45,9 +90,12 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
-		mobiledriver.merchantPassword(7,"P27O7FZM2");
-//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
+//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
+//		mobiledriver.merchantPassword(7,"P27O7FZM2");
+		mobiledriver.enterPIN(5, "123456");
+		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
+		mobiledriver.clickNext(5);
+		//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
 
 //		Assert.assertEquals(mobiledriver.getTitle(), "Appium: Mobile App Automation Made Awesome.", "Title Mismatch");
 	}

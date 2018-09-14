@@ -39,5 +39,23 @@ public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		this.findElementByXPath(merchantPasswordContinueButtonXPath).click();
 		System.out.println("continue button clicked");		
 	}
+	
+	public void enterPIN(int waitSec, String PIN) throws InterruptedException {
+		Thread.sleep(waitSec * 1000);
+		int len = PIN.length();
+		int i = 0;
+		PIN.charAt(i);
+		for (i=0; i < len; i++ ) {
+			System.out.println(PIN.charAt(i));
+			this.findElementByXPath("//android.widget.Button[@text=" + PIN.charAt(i) + "]").click();
+			System.out.println(PIN.charAt(i)+ " button clicked");		
+		}
+		this.findElementByXPath("//android.widget.LinearLayout[@resource-id='com.mobeewave.pep.test.debug:id/numpad_button_ok']").click();
+		System.out.println("OK button clicked");	
+	}
 
+	public void clickNext(int waitSec) throws InterruptedException {
+		Thread.sleep(waitSec * 1000);
+		this.findElementByXPath("//android.widget.Button[@resource-id='com.mobeewave.pep.test.debug:id/base_primary_button']").click();
+	}
 }
