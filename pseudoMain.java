@@ -20,34 +20,21 @@ import io.appium.java_client.MobileElement;
 public class pseudoMain{
 	public static PepAndroidDriver<?> mobiledriver;
 
-
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
-		
 		String[] capNames = new String[10];
 		String[] capValues = new String[10];
-
-		String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv";
-
+		String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; //Configuration file to set capabilities. notice the parameter shouldn't have space after commas as of current version.
+		String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app element.csv"; //Configuration file for app element xpath.
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, "1.9.0");
 		capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, "8.0.0");
 		capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,"Android");
 		capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,"UiAutomator2");
 		capabilities.setCapability(MobileCapabilityType.DEVICE_NAME, "Samsung Galaxy S9");
-//		capabilities.setCapability(MobileCapabilityType.BROWSER_NAME, "Browser");
-//		capabilities.setCapability("udid", "192.168.56.101:5555"); //设备的udid (adb devices 查看到的)
-//	    cap.setCapability("browserName", "chrome");//设置HTML5的自动化，打开谷歌浏览器	
-		capabilities.setCapability("appPackage","com.mobeewave.pep.test.debug");//被测app的包名
-		capabilities.setCapability("appActivity","com.mobeewave.mpos2.login.LoginActivity");//被测app的入口Activity名称	
-	    capabilities.setCapability("app", "C:\\Users\\YeTao\\eclipse-workspace\\automationTemplates\\apps\\pep-v1.4.1-198-integration-debug.apk");//安装apk
 		capabilities.setCapability("noReset", true);
 		capabilities.setCapability("newCommandTimeout", 2000);
-//		mobiledriver = new AndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"),capabilities);//把以上配置传到appium服务端并连接手机
-
-		 try { 
-		        // Create an object of filereader 
-		        // class with CSV file as a parameter. 
+		try { 
 		        FileReader filereader = new FileReader(file); 
 		        CSVReader csvReader = new CSVReader(filereader); 
 		        String[] nextRecord; 
@@ -56,29 +43,33 @@ public class pseudoMain{
 		        while ((nextRecord = csvReader.readNext()) != null) { 
 		        	int columnCount = 1;
 		            for (String cell : nextRecord) { 
-		            	if (columnCount == 1) {
-		            		capNames[i] = cell;
+		            	if (columnCount == 1) {	
+		            		capNames[i] = cell; //it is assumed that the first column of the config file contains capabilities name
 		            		System.out.println(cell + " read, " + capNames[i] + " saved in capname");
 		            	}
 		            	else if (columnCount == 2) {
-		            		capValues[i] = cell;
+		            		capValues[i] = cell;//it is assumed that the second column of the config file contains capabilities value
 		            		System.out.println(cell + " read, " + capValues[i] + " saved in capvalue");
+		            		if (i>0) {
+		            		capabilities.setCapability(capNames[i], capValues[i]); //unless this is title row, set the capabilities
+		            		}
 		            	}
 		            	else {
 		            		  System.out.println("column " + columnCount + ", don't know what to do."); 
+		            		  	//it is assumed that the 3rd column (or later) of the config file contains garbage
 		            	}
-		                //System.out.print(cell + "\t"); 
 		                columnCount ++;
 		            } 
 		            System.out.println(); 
 		            i++;
 		        } 
+		        csvReader.close();
 		    } 
 		    catch (Exception e) { 
 		        e.printStackTrace(); 
 		    } 		
 		
-		mobiledriver = new PepAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities);
+		mobiledriver = new PepAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
 
 	}
 
@@ -90,7 +81,7 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
+		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
 //		mobiledriver.merchantPassword(7,"P27O7FZM2");
 		mobiledriver.enterPIN(5, "123456");
 		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;

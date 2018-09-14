@@ -1,3 +1,4 @@
+import java.io.File;
 import java.net.URL;
 
 import org.openqa.selenium.Capabilities;
@@ -5,6 +6,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 
+import bsh.This;
 import io.appium.java_client.android.*;
 
 public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
@@ -13,23 +15,28 @@ public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	private String merchantSignInButtonXPath = "//android.widget.Button[@text='SIGN IN']";
 	private String merchantPasswordXPath = "//android.widget.EditText[@text='Password']";
 	private String merchantPasswordContinueButtonXPath= "//android.widget.Button[@text='CONTINUE']";
-/*	public PepAndroidDriver(HttpCommandExecutor remoteAddress, Capabilities desiredCapabilities) {
-		super(remoteAddress, desiredCapabilities);
-		
-		// TODO Auto-generated constructor stub
-	}
-*/
-	public PepAndroidDriver(URL url, DesiredCapabilities capabilities) {
+
+
+	
+	
+	public PepAndroidDriver(URL url, DesiredCapabilities capabilities, String elementConfig) {
 		super(url,capabilities);
+
 		// TODO Auto-generated constructor stub
 	}
 	
 	public void merchantSignin(int waitSec, String ID) throws InterruptedException {
 		Thread.sleep(waitSec * 1000);
-		this.findElementByXPath(merchantIDXPath).sendKeys(ID);
-		System.out.println("merchant id element found");
-		this.findElementByXPath(merchantSignInButtonXPath).click();
-		System.out.println("Sign in button clicked");
+		try {
+			this.findElementByXPath(merchantIDXPath).sendKeys(ID);
+			System.out.println("merchant id element found");
+			this.findElementByXPath(merchantSignInButtonXPath).click();
+			System.out.println("Sign in button clicked");
+
+			}catch(Exception e) {
+
+			System.out.println("exception caught");
+			}
 	}
 	
 	public void merchantPassword(int waitSec, String password) throws InterruptedException {
@@ -42,6 +49,8 @@ public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	
 	public void enterPIN(int waitSec, String PIN) throws InterruptedException {
 		Thread.sleep(waitSec * 1000);
+
+		try {
 		int len = PIN.length();
 		int i = 0;
 		PIN.charAt(i);
@@ -52,6 +61,9 @@ public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		}
 		this.findElementByXPath("//android.widget.LinearLayout[@resource-id='com.mobeewave.pep.test.debug:id/numpad_button_ok']").click();
 		System.out.println("OK button clicked");	
+		}catch(Exception e) {
+			System.out.println("exception caught");
+		}
 	}
 
 	public void clickNext(int waitSec) throws InterruptedException {
