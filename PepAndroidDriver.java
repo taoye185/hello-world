@@ -87,13 +87,14 @@ public class PepAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	
 	public void testScenarioConstructor (String methodName, String[] parameters) throws InterruptedException {
 			int waitSec = 5;
+			System.out.println(methodName + " with parameter " + parameters[0] + " and " + parameters[1] + "to be called");
 		switch (methodName) {
-			case "merchantSignIn": this.merchantSignin(waitSec, parameters[1]);
-			case "merchantPassword": this.merchantPassword(waitSec, parameters[1]);
-			case "enterPIN": this.enterPIN(waitSec, parameters[1]);
-			case "enterEmptyPIN": this.enterEmptyPIN(waitSec);
-			case "clickNext": this.clickNext(waitSec);
-			case "ShowSideMenu": this.showSideMenu(waitSec);
+			case "merchantSignin": {this.merchantSignin(waitSec, parameters[1]); break;}
+			case "merchantPassword": {this.merchantPassword(waitSec, parameters[1]);break;}
+			case "enterPIN": {this.enterPIN(waitSec, parameters[1]);break;}
+			case "enterEmptyPIN": {this.enterEmptyPIN(waitSec);break;}
+			case "clickNext": {this.clickNext(waitSec);break;}
+			case "showSideMenu": {this.showSideMenu(waitSec);break;}
 			default: System.out.println(methodName + " not found. No such method exists.");
 		}
 	}

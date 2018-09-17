@@ -19,14 +19,14 @@ import io.appium.java_client.MobileElement;
 
 public class pseudoMain{
 	public static PepAndroidDriver<?> mobiledriver;
+	static String casefile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\base test case config.csv"; //configuration file to construct test cases
+	static String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; //Configuration file to set capabilities. notice the parameter shouldn't have space after commas as of current version.
+	static String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app elements.csv"; //Configuration file for app element xpath.
 
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
 		String[] capNames = new String[10];
 		String[] capValues = new String[10];
-		String casefile = "configuration file for test cases to be executed. yet to be implemented.";
-		String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; //Configuration file to set capabilities. notice the parameter shouldn't have space after commas as of current version.
-		String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app elements.csv"; //Configuration file for app element xpath.
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, "1.9.0");
 		capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, "8.0.0");
@@ -82,16 +82,51 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
-		mobiledriver.merchantPassword(7,"6Z214UU53");
+//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
+	//	mobiledriver.merchantPassword(7,"6Z214UU53");
 //		mobiledriver.enterEmptyPIN(5);
-		mobiledriver.enterPIN(5, "123456");
-		mobiledriver.showSideMenu(5);
+//		mobiledriver.enterPIN(5, "123456");
+//		mobiledriver.showSideMenu(5);
 //		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
 //		mobiledriver.clickNext(5);
 		//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
 
 //		Assert.assertEquals(mobiledriver.getTitle(), "Appium: Mobile App Automation Made Awesome.", "Title Mismatch");
+		try { 
+	        FileReader filereader = new FileReader(casefile); 
+	        CSVReader csvReader = new CSVReader(filereader); 
+	        String[] nextRecord; 
+	        String methodName = "";
+	        String[] methodParameters = new String[10];
+	        int i = 0;
+	        // we are going to read data line by line 
+	        while ((nextRecord = csvReader.readNext()) != null) { 
+	        	int columnCount = 1;
+	            for (String cell : nextRecord) { 
+	            	if (columnCount == 1) {	
+	            		methodName = cell; //it is assumed that the first column of the config file contains method name to be called
+	            System.out.println(cell);
+	            	}
+	            	else {
+	            		methodParameters[columnCount-2] = cell;//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
+	            System.out.println(cell);	
+	            	}
+
+	                columnCount ++;
+	            } 
+	            if (i > 0) {
+	            mobiledriver.testScenarioConstructor(methodName, methodParameters); //unless it is title row, construct the method
+	            }
+	            i++;
+	        } 
+	        csvReader.close();
+	    } 
+	    catch (Exception e) { 
+	        e.printStackTrace(); 
+	    } 	
+	
+	
+	
 	}
 	
 	
