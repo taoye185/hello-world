@@ -24,8 +24,9 @@ public class pseudoMain{
 	public void beforeTest( ) throws MalformedURLException {
 		String[] capNames = new String[10];
 		String[] capValues = new String[10];
+		String casefile = "configuration file for test cases to be executed. yet to be implemented.";
 		String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; //Configuration file to set capabilities. notice the parameter shouldn't have space after commas as of current version.
-		String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app element.csv"; //Configuration file for app element xpath.
+		String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app elements.csv"; //Configuration file for app element xpath.
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, "1.9.0");
 		capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, "8.0.0");
@@ -81,10 +82,11 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
-//		mobiledriver.merchantPassword(7,"P27O7FZM2");
-		mobiledriver.enterEmptyPIN(5);
-//		mobiledriver.enterPIN(5, "123456");
+		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
+		mobiledriver.merchantPassword(7,"6Z214UU53");
+//		mobiledriver.enterEmptyPIN(5);
+		mobiledriver.enterPIN(5, "123456");
+		mobiledriver.showSideMenu(5);
 //		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
 //		mobiledriver.clickNext(5);
 		//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
