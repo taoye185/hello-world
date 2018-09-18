@@ -18,7 +18,7 @@ import io.appium.java_client.MobileElement;
 
 
 public class pseudoMain{
-	public static PepAndroidDriver<?> mobiledriver;
+	public static MWAndroidDriver<?> mobiledriver;
 	static String casefile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\base test case config.csv"; //configuration file to construct test cases
 	static String file = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; //Configuration file to set capabilities. notice the parameter shouldn't have space after commas as of current version.
 	static String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app elements.csv"; //Configuration file for app element xpath.
@@ -46,22 +46,18 @@ public class pseudoMain{
 		            for (String cell : nextRecord) { 
 		            	if (columnCount == 1) {	
 		            		capNames[i] = cell; //it is assumed that the first column of the config file contains capabilities name
-//		            		System.out.println(cell + " read, " + capNames[i] + " saved in capname");
 		            	}
 		            	else if (columnCount == 2) {
 		            		capValues[i] = cell;//it is assumed that the second column of the config file contains capabilities value
-//		            		System.out.println(cell + " read, " + capValues[i] + " saved in capvalue");
 		            		if (i>0) {
 		            		capabilities.setCapability(capNames[i], capValues[i]); //unless this is title row, set the capabilities
 		            		}
 		            	}
 		            	else {
-//		            		  System.out.println("column " + columnCount + ", don't know what to do."); 
 		            		  	//it is assumed that the 3rd column (or later) of the config file contains garbage
 		            	}
 		                columnCount ++;
 		            } 
-//		            System.out.println(); 
 		            i++;
 		        } 
 		        csvReader.close();
@@ -70,7 +66,7 @@ public class pseudoMain{
 		        e.printStackTrace(); 
 		    } 		
 		
-		mobiledriver = new PepAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
+		mobiledriver = new MWAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
 
 	}
 
@@ -82,16 +78,7 @@ public class pseudoMain{
 	
 	@Test
 	public static void launchApp() throws InterruptedException{
-//		mobiledriver.merchantSignin(5,"005040100000004");		//wait for 5 seconds, then input Merchant ID and click OK
-	//	mobiledriver.merchantPassword(7,"6Z214UU53");
-//		mobiledriver.enterEmptyPIN(5);
-//		mobiledriver.enterPIN(5, "123456");
-//		mobiledriver.showSideMenu(5);
-//		mobiledriver.enterPIN(5, "1234"); //this is actually making purchase of $12.34;
-//		mobiledriver.clickNext(5);
-		//		Assert.assertEquals(mobiledriver.findElementById("toolbar_title").getText(), "Merchant Registration");
-
-//		Assert.assertEquals(mobiledriver.getTitle(), "Appium: Mobile App Automation Made Awesome.", "Title Mismatch");
+		// read from casefile and construct the respective test case methods
 		try { 
 	        FileReader filereader = new FileReader(casefile); 
 	        CSVReader csvReader = new CSVReader(filereader); 
@@ -99,23 +86,24 @@ public class pseudoMain{
 	        String methodName = "";
 	        String[] methodParameters = new String[10];
 	        int i = 0;
-	        // we are going to read data line by line 
+
 	        while ((nextRecord = csvReader.readNext()) != null) { 
 	        	int columnCount = 1;
 	            for (String cell : nextRecord) { 
 	            	if (columnCount == 1) {	
-	            		methodName = cell; //it is assumed that the first column of the config file contains method name to be called
-	            System.out.println(cell);
+	            		methodName = cell; 
+	            		//it is assumed that the first column of the config file contains method name to be called
 	            	}
 	            	else {
-	            		methodParameters[columnCount-2] = cell;//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
-	            System.out.println(cell);	
+	            		methodParameters[columnCount-2] = cell;
+	            		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
 	            	}
 
 	                columnCount ++;
 	            } 
 	            if (i > 0) {
-	            mobiledriver.testScenarioConstructor(methodName, methodParameters); //unless it is title row, construct the method
+	            mobiledriver.testScenarioConstructor(methodName, methodParameters); 
+	            //unless it is title row, construct and execute the method
 	            }
 	            i++;
 	        } 
