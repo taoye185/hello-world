@@ -96,7 +96,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * Post: a method corresponding to the methodName variable is called and executed. 
  */
 		int waitSec = Integer.parseInt(parameters[0]);
-		System.out.println("The method " +methodName + " with parameter " + parameters[0] + " and " + parameters[1] + " are called");
+		System.out.println("The method \"" +methodName + " (" + parameters[0] + ", " + parameters[1] + ")\" are called");
 		switch (methodName) {
 			case "merchantSignin": {this.merchantSignin(waitSec, parameters[1]); break;}
 			case "merchantPassword": {this.merchantPassword(waitSec, parameters[1]);break;}
