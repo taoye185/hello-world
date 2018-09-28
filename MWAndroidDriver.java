@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
+
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -13,6 +15,10 @@ import org.testng.Assert;
 import com.opencsv.CSVReader;
 import bsh.This;
 import io.appium.java_client.android.*;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 /* This class extends the basic android driver and adds the following variables/methods to the 
@@ -49,8 +55,12 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  */
 	
 	private Map<String, String> pElement = new HashMap<String, String>();
+	private Map<String, mobilePage> pageName = new HashMap<String, mobilePage>();
 	private String elementName;
 	private String elementPath;
+	private Logger testLog = Logger.getLogger("log test.txt");
+	private Vector pages = new Vector();
+	
 	
 	public MWAndroidDriver(URL url, DesiredCapabilities capabilities, String elementConfig) {
 /* Pre: elementConfig is the path of a configuration file, listing all relevant URIs for the test project
@@ -58,7 +68,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * 		elements
  */
 		super(url,capabilities);
-
+		System.out.println(getClass().getClassLoader().getResource("logging.properties"));
 		// TODO Auto-generated constructor stub
 		try { 
 	        FileReader filereader = new FileReader(elementConfig);  //reads the elementConfig configuration file. the ID field of the file are assumed to be unique
@@ -66,46 +76,46 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	        String[] nextRecord; 
 	        int i = 0;
 	        while ((nextRecord = csvReader.readNext()) != null) { 
-	        	int columnCount = 1;
-	            for (String cell : nextRecord) { 
-	            	if (columnCount == 1) {	
-	            		elementName = cell; //it is assumed that the first column of the config file contains a unique ID
-	            	}
-	            	else if (columnCount == 2) {
-	            		elementPath = cell;//it is assumed that the second column of the config file contains the element XPath
-	            		if (i>0) {
-	            		pElement.put(elementName, elementPath); //unless this is title row, set the WebElement Name&XPath mapping
-	            		}
-	            	}
-	            	else {
-            		  	//it is assumed that the 3rd column (or later) of the config file contains garbage
-	            	}
-	                columnCount ++;
-	            } 
+	        	if(i>0) {
+	        		pElement.put(nextRecord[0], nextRecord[1]);
+	        		if (pageName.get(nextRecord[2])==null) {
+	        			mobilePage newPage = new mobilePage(nextRecord[2], nextRecord[0]);
+	        			pages.addElement(newPage);
+	        			pageName.put(nextRecord[2], newPage);
+	        		}
+	        		else {
+	        			pageName.get(nextRecord[2]).addElement(nextRecord[0]);
+	        		}
+	        		System.out.println(pageName.get(nextRecord[2]).getPageName());
+	        		System.out.println(pageName.get(nextRecord[2]).getAllElements().toString());
+	        	}
 	            i++;
 	        } 
 	        csvReader.close();
 	    } 
 	    catch (Exception e) { 
-	        e.printStackTrace(); 
+	    	//this.logerror(e);
+	    	e.printStackTrace(); 
 	    } 		
 	}
 	
-	public void testScenarioConstructor (String methodName, String[] parameters) throws InterruptedException {
+	public void testScenarioConstructor (String[] parameters) throws InterruptedException {
 /* Pre: parameters[0] is a string that can be parsed into a non-negative integer
  * Post: a method corresponding to the methodName variable is called and executed. 
+ * 		Data validation would be needed for this method which is not implemented yet.
  */
-		int waitSec = Integer.parseInt(parameters[0]);
-		System.out.println("The method \"" +methodName + " (" + parameters[0] + ", " + parameters[1] + ")\" are called");
-		switch (methodName) {
-			case "merchantSignin": {this.merchantSignin(waitSec, parameters[1]); break;}
-			case "merchantPassword": {this.merchantPassword(waitSec, parameters[1]);break;}
-			case "enterPIN": {this.enterPIN(waitSec, parameters[1]);break;}
+		int waitSec = Integer.parseInt(parameters[1]);
+		System.out.println("The method \"" +parameters[0] + " ("  + ")\" are called");
+		switch (parameters[0]) {
+			case "merchantSignin": {this.merchantSignin(waitSec, parameters[2]); break;}
+			case "merchantPassword": {this.merchantPassword(waitSec, parameters[2]);break;}
+			case "enterPIN": {this.enterPIN(waitSec, parameters[2]);break;}
 			case "enterEmptyPIN": {this.enterEmptyPIN(waitSec);break;}
 			case "clickNext": {this.clickNext(waitSec);break;}
 			case "showSideMenu": {this.showSideMenu(waitSec);break;}
-			case "clickButton": {this.clickButton(waitSec, parameters[1]);break;}
-			default: System.out.println(methodName + " not found. No such method exists.");
+			case "clickButton": {this.clickButton(waitSec, parameters[2]);break;}
+			case "checkPageOverlap": {this.checkPageOverlap(waitSec, parameters[2]);break;}
+			default: System.out.println(parameters[0] + " not found. No such method exists.");
 		}
 	}
 	
@@ -125,7 +135,9 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			System.out.println("Sign in button clicked");
 
 			}catch(Exception e) {
-			System.out.println("exception caught, not on Merchant Sign IN page");
+
+			this.logMessage("exception caught, not on Merchant Sign IN page");
+	    	//this.logerror(e);
 			}
 	}
 	
@@ -143,7 +155,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		this.findElementByXPath(pElement.get("MerchantPasswordContinue")).click(); // click OK
 		}
 		catch(Exception e) {
-		System.out.println("exception caught, not on Merchant Password page.");
+			this.logMessage("exception caught, not on Merchant Password page.");
+	    	//this.logerror(e);		
 		}
 		
 	}
@@ -163,7 +176,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			Assert.assertFalse(true);//If the validation message is already present without any action, it is a bug.
 		}
 		catch (Exception e) {
-			System.out.println("exception caught, validation message doesn't exist");
+			this.logMessage("exception caught, validation message doesn't exist");
+	    	//this.logerror(e);	
 		}
 		
 		try {
@@ -173,7 +187,9 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			//If the correct validation messages appears, test passed
 		}
 		catch (Exception e) {
-			System.out.println("exception caught, not on PIN entering page.");
+
+			this.logMessage("exception caught, not on PIN entering page.");
+	    	//this.logerror(e);	
 		}
 	}
 	
@@ -196,7 +212,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		this.findElementByXPath(pElement.get("EnterPINOK")).click(); //Click OK
 
 		}catch(Exception e) {
-			System.out.println("exception caught, not on PIN entering page.");
+			this.logMessage("exception caught, not on PIN entering page.");
+	    	//this.logerror(e);
 		}
 	}
 
@@ -210,7 +227,9 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		this.findElementByXPath(pElement.get("PurchaseDescriptionNext")).click();
 		}
 		catch (Exception e) {
-			System.out.println("exception caught, Next button not found");
+
+			this.logMessage("exception caught, Next button not found");
+	    	//this.logerror(e);
 		}
 	}
 	
@@ -242,4 +261,95 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			System.out.println("exception caught, failed to find " + URI);
 		}
 	}
+	
+	
+	private void logMessage(String message)
+	{
+		 
+		testLog.log( Level.FINE, message ); 
+	}
+	private void logError(Exception ex)
+	{
+		testLog.log( Level.SEVERE, ex.toString(), ex );
+		 
+	}
+	
+	public boolean checkPageOverlap(int waitSec, String pName) throws InterruptedException {
+		Thread.sleep(waitSec * 1000);
+
+		Vector URIs = pageName.get(pName).getAllElements();
+		boolean isOverlapping = false;
+		try {
+		int numElement = URIs.size();
+		for (int i = 0; i<numElement; i++) {
+			for (int j=i+1; j<numElement;j++) {
+System.out.println((String)URIs.elementAt(i));
+				WebElement a = this.findElementByXPath(pElement.get((String) URIs.elementAt(i)));
+System.out.println((String)URIs.elementAt(j));
+				WebElement b = this.findElementByXPath(pElement.get((String) URIs.elementAt(j)));
+System.out.println("no exception when finding element");
+				boolean compare = this.isOverlap(a, b);
+				isOverlapping = (compare||isOverlapping);
+				if (compare == true) {
+				System.out.println(URIs.elementAt(i) + " and " + URIs.elementAt(j) + " is compared, their overlapping status is: "+ compare);
+				}
+			}
+		}
+		} 
+		catch(Exception e) {
+System.out.println("exception caught when comparing overlaps");			
+this.logMessage("exception caught when comparing overlaps");
+		}
+		return isOverlapping;
+		
+	}
+	
+	public boolean isOverlap(WebElement w1, WebElement w2) {
+//		WebElement w1 = this.findElementByXPath(pElement.get(object));
+//		WebElement w2 = this.findElementByXPath(pElement.get(object2));
+		int ax1 = w1.getLocation().getX();
+		int ay1 = w1.getLocation().getY();
+		int width1 = w1.getSize().getWidth();
+		int height1 = w1.getSize().getHeight();		
+		int ax2 = ax1 + width1;
+		int ay2 = ay1 + height1;		
+		int bx1 = w2.getLocation().getX();
+		int by1 = w2.getLocation().getY();
+		int width2 = w2.getSize().getWidth();
+		int height2 = w2.getSize().getHeight();
+		int bx2 = bx1 + width2;
+		int by2 = by1 + height2;
+		
+		if ((bx2>=ax2) && (ax2 > bx1) && (by2>=ay2) && (ay2 > by1)  ) {
+			System.out.println("A possible overlap: 1st element has [" +ax1+ " ,"+ax2+ " ,"+ay1+ " ,"+ay2+ "]");
+			System.out.println("A possible overlap: 2nd element has [" +bx1+ " ,"+bx2+ " ,"+by1+ " ,"+by2+ "]");
+			return true;
+		}
+		else if ( (ax1 < bx2) && (bx2<=ax2)&& (ay1 < by2)&&(by2<=ay2)) {
+			System.out.println("A possible overlap: 1st element has [" +ax1+ " ,"+ax2+ " ,"+ay1+ " ,"+ay2+ "]");
+			System.out.println("A possible overlap: 2nd element has [" +bx1+ " ,"+bx2+ " ,"+by1+ " ,"+by2+ "]");
+			return true;
+		}
+//		System.out.println("not overlapping");
+		return false;
+	}
+	
+	public boolean isaligned (String mode, String URI1, String URI2) {
+		
+		switch (mode) {
+		
+		case ("HorizontalTop"): {}
+		case ("HorizontalMid"): {}
+		case ("HorizontalBottom"): {}
+		case ("VerticalLeft"): {}
+		case ("VerticalMid"): {}
+		case ("VerticalRight"): {}
+		dafault: return true;
+		
+		}
+		
+		
+		return true;
+	}
+	
 }

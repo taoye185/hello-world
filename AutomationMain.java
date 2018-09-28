@@ -34,66 +34,73 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import org.openqa.selenium.WebDriver;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-	static String casefile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\base test case config.csv"; 
+//	private static final Logger testLog = Logger.getLogger("log test.txt");
+	static String casefile = ".\\src\\Testcase configuration\\base test case config.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-	static String deviceFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\config.csv"; 
+	static String appFile = ".\\src\\Testcase configuration\\CBA Config.csv"; 
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
-	static String elementFile = "C:\\Users\\YeTao\\Desktop\\automation\\Testcase configuration\\app elements.csv"; 
+	static String elementFile = ".\\src\\Testcase configuration\\CBA app elements.csv"; 
 	//This configuration file contains the URI for all the relevant WebElement that the mobile app contains - QA engineers
 	//should update this file whenever the app is modified in a way such that one or more WebElement has been created or changed
 	//to a new URI.
+	static String deviceFile = ".\\src\\Testcase configuration\\device list.csv"; 
 
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
-		String[] capNames = new String[10];
-		String[] capValues = new String[10];
+
 		DesiredCapabilities capabilities = new DesiredCapabilities();
-		capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, "1.9.0"); 
-		//initiate capability, the first 5 capabilities are unique capabilities that are easier initiated directly rather than read through config file
-		capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, "8.0.0");
-		capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,"Android");
-		capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,"UiAutomator2");
-		capabilities.setCapability(MobileCapabilityType.DEVICE_NAME, "Samsung Galaxy S9");
-		capabilities.setCapability("noReset", true); 
-		//non String type capabilities, could be put into configuration file with a bit modification on code, but I will leave it as-is for now
-		capabilities.setCapability("newCommandTimeout", 2000);
+
 		try { 	//read the remaining capability value from the configuration file
-		        FileReader filereader = new FileReader(deviceFile); 
+	        FileReader filereader = new FileReader(deviceFile); 
+	        CSVReader csvReader = new CSVReader(filereader); 
+	        String[] nextRecord; 
+	        int i = 0;
+
+	        while ((nextRecord = csvReader.readNext()) != null) { //this code is only good for one device initiation. will need to modify to accomodate for multiple devices
+ 	        	if (i>0 && Integer.parseInt(nextRecord[0])==1) {			            		//unless this is title row, set the capabilities
+         			capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, nextRecord[1]); 
+        			capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, nextRecord[2]);
+        			capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,nextRecord[3]);
+        			capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,nextRecord[4]);
+        			capabilities.setCapability(MobileCapabilityType.DEVICE_NAME, nextRecord[5]);
+          		}
+	            i++;
+	        } 
+	            csvReader.close();
+    			capabilities.setCapability("noReset", true); 
+    			//non String type capabilities, could be put into configuration file with a bit modification on code, but I will leave it as-is for now
+    			capabilities.setCapability("newCommandTimeout", 2000);
+	    } 
+	    catch (Exception e) { 
+
+	        e.printStackTrace(); 
+	    } 		
+		
+		try { 	//read the remaining capability value from the configuration file
+		        FileReader filereader = new FileReader(appFile); 
 		        CSVReader csvReader = new CSVReader(filereader); 
 		        String[] nextRecord; 
 		        int i = 0;
 
 		        while ((nextRecord = csvReader.readNext()) != null) { 
-		        	int columnCount = 1;
-		            for (String cell : nextRecord) { 
-		            	if (columnCount == 1) {	
-		            		capNames[i] = cell; 
-		            		//it is assumed that the first column of the config file contains capabilities name
-		            	}
-		            	else if (columnCount == 2) {
-		            		capValues[i] = cell;
-		            		//it is assumed that the second column of the config file contains capabilities value
-		            		if (i>0) {
-		            		capabilities.setCapability(capNames[i], capValues[i]); 
-		            		//unless this is title row, set the capabilities
-		            		}
-		            	}
-		            	else {
-		            		  	//it is assumed that the 3rd column (or later) of the config file contains notes/comments not
-		            			//needed for the program itself
-		            	}
-		                columnCount ++;
-		            } 
+            		if (i>0) {			            		//unless this is title row, set the capabilities
+            			capabilities.setCapability(nextRecord[0], nextRecord[1]); 	
+            		//it is assumed that the first column of the config file contains capabilities name		
+            			//it is assumed that the second column of the config file contains capabilities value
+            			//it is assumed that the 3rd column (or later) of the config file contains notes/comments not
+            		}
 		            i++;
 		        } 
-		        csvReader.close();
+		            csvReader.close();
 		    } 
 		    catch (Exception e) { 
 		        e.printStackTrace(); 
@@ -107,12 +114,16 @@ public class AutomationMain{
 	@AfterTest
 	public void afterTest( ){
 
-
-		sendPDFReportByGMail("taooyee@gmail.com", "Mobeewave2015", "ytao@mobeewave.com", "test Report", "");
+		try {
+//		sendPDFReportByGMail("taooyee@gmail.com", "Mobeewave2015", "ytao@mobeewave.com", "test Report", "");
+		}
+		catch (Exception e) {
+			e.printStackTrace(); 
+		}
 //		There is an excellent tutorial for emailing testing result at https://www.guru99.com/pdf-emails-and-screenshot-of-test-reports-in-selenium.html,
 //		The current functionality can be further expanded by following instructions from there.
 		
-		mobiledriver.quit();
+//		mobiledriver.quit();
 	}
 
 	
@@ -123,29 +134,15 @@ public class AutomationMain{
 	        FileReader filereader = new FileReader(casefile); 
 	        CSVReader csvReader = new CSVReader(filereader); 
 	        String[] nextRecord; 
-	        String methodName = "";
-	        String[] methodParameters = new String[10];
-	        int i = 0;
-
+	        int row = 0;
 	        while ((nextRecord = csvReader.readNext()) != null) { 
-	        	int columnCount = 1;
-	            for (String cell : nextRecord) { 
-	            	if (columnCount == 1) {	
-	            		methodName = cell; 
-	            		//it is assumed that the first column of the config file contains method name to be called
-	            	}
-	            	else {
-	            		methodParameters[columnCount-2] = cell;
-	            		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
-	            	}
 
-	                columnCount ++;
-	            } 
-	            if (i > 0) {
-	            mobiledriver.testScenarioConstructor(methodName, methodParameters); 
-	            //unless it is title row, construct and execute the method
+	            if (row > 0) { 	            //unless it is title row, construct and execute the method
+	            mobiledriver.testScenarioConstructor(nextRecord); 
+        		//it is assumed that the first column of the config file contains method name to be called
+        		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
 	            }
-	            i++;
+	            row++;
 	        } 
 	        csvReader.close();
 	    } 
@@ -153,9 +150,6 @@ public class AutomationMain{
 	        e.printStackTrace(); 
 	    } 	
 		//end of test case
-	
-	
-	
 	}
 	
 	
@@ -216,6 +210,17 @@ public class AutomationMain{
     }
 
 
-	
+ /*   
+	private void logMessage(String message)
+	{
+		 
+		testLog.log( Level.FINE, message ); 
+	}
+	private void logError(Exception ex)
+	{
+		testLog.log( Level.SEVERE, ex.toString(), ex );
+		 
+	}
+	*/
 	
 }
