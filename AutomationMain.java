@@ -41,11 +41,10 @@ import java.util.logging.Logger;
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-//	private static final Logger testLog = Logger.getLogger("log test.txt");
-	static String casefile = ".\\src\\Testcase configuration\\base test case config.csv"; 
+	static String casefile = ".\\src\\Testcase configuration\\101 test case config.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-	static String appFile = ".\\src\\Testcase configuration\\CBA Config.csv"; 
+	static String appFile = ".\\src\\Testcase configuration\\CBA Config Neha.csv"; 
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
 	static String elementFile = ".\\src\\Testcase configuration\\CBA app elements.csv"; 
@@ -115,7 +114,7 @@ public class AutomationMain{
 	public void afterTest( ){
 
 		try {
-//		sendPDFReportByGMail("taooyee@gmail.com", "Mobeewave2015", "ytao@mobeewave.com", "test Report", "");
+		sendPDFReportByGMail("taooyee@gmail.com", "Thankyou1", "ytao@mobeewave.com", "test Report", "Please see attached file for testing report. /nB.R./nQA Automation Team");
 		}
 		catch (Exception e) {
 			e.printStackTrace(); 
@@ -123,7 +122,7 @@ public class AutomationMain{
 //		There is an excellent tutorial for emailing testing result at https://www.guru99.com/pdf-emails-and-screenshot-of-test-reports-in-selenium.html,
 //		The current functionality can be further expanded by following instructions from there.
 		
-//		mobiledriver.quit();
+		mobiledriver.quit();
 	}
 
 	
@@ -188,7 +187,7 @@ public class AutomationMain{
     		//Set path to the pdf report file
     		//String filename = System.getProperty("user.dir")+"\\Default test.pdf";
     		//Create data source to attach the file in mail
-    		DataSource source = new FileDataSource("C:\\Users\\YeTao\\eclipse-workspace\\automationTemplates\\test-output\\index.html");
+    		DataSource source = new FileDataSource("C:\\Users\\YeTao\\eclipse-workspace\\automationTemplates\\test-output\\emailable-report.html");
     		objMessageBodyPart.setDataHandler(new DataHandler(source));
     		objMessageBodyPart.setFileName("Test Report.html");
     		multipart.addBodyPart(objMessageBodyPart);
