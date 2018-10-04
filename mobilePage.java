@@ -6,6 +6,8 @@ public class mobilePage {
 	
 	private Vector pe = new Vector();
 	String name;
+	String uID = "";
+	String uValue = "";
 	
 
 	public mobilePage (String[] elements) {
@@ -66,5 +68,18 @@ public class mobilePage {
 	
 	public void addElement(String we) {
 		pe.addElement(we);
+	}
+	
+	public void setUniqueID(String ID, String Value) {
+		uID = ID;
+		uValue = Value;
+	}
+	
+	public String getUID() {
+		return uID;
+	}
+	
+	public String getUValue() {
+		return uValue;
 	}
 }
