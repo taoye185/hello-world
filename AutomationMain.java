@@ -41,10 +41,10 @@ import java.util.logging.Logger;
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-	static String casefile = ".\\src\\Testcase configuration\\101 test case config.csv"; 
+	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-	static String appFile = ".\\src\\Testcase configuration\\CBA Config Neha.csv"; 
+	static String appFile = ".\\src\\Testcase configuration\\CBA Config.csv"; 
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
 	static String elementFile = ".\\src\\Testcase configuration\\CBA app elements.csv"; 
@@ -52,11 +52,12 @@ public class AutomationMain{
 	//should update this file whenever the app is modified in a way such that one or more WebElement has been created or changed
 	//to a new URI.
 	static String deviceFile = ".\\src\\Testcase configuration\\device list.csv"; 
-
+	static DesiredCapabilities capabilities = new DesiredCapabilities();
+	
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
 
-		DesiredCapabilities capabilities = new DesiredCapabilities();
+
 
 		try { 	//read the remaining capability value from the configuration file
 	        FileReader filereader = new FileReader(deviceFile); 
@@ -114,7 +115,7 @@ public class AutomationMain{
 	public void afterTest( ){
 
 		try {
-		sendPDFReportByGMail("taooyee@gmail.com", "Thankyou1", "ytao@mobeewave.com", "test Report", "Please see attached file for testing report. /nB.R./nQA Automation Team");
+//		sendPDFReportByGMail("taooyee@gmail.com", "Thankyou1", "ytao@mobeewave.com", "test Report", "");
 		}
 		catch (Exception e) {
 			e.printStackTrace(); 
@@ -122,7 +123,7 @@ public class AutomationMain{
 //		There is an excellent tutorial for emailing testing result at https://www.guru99.com/pdf-emails-and-screenshot-of-test-reports-in-selenium.html,
 //		The current functionality can be further expanded by following instructions from there.
 		
-		mobiledriver.quit();
+//		mobiledriver.quit();
 	}
 
 	

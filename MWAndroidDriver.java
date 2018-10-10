@@ -131,12 +131,13 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			case "launch": {this.launch(waitSec);break;}
 			case "login": {this.login(waitSec); break;}
 			case "multiplePurchase": {this.multiplePurchase(waitSec); break;}
+			case "test": {this.test(waitSec, parameters[5], parameters[6], parameters[7]);break;}
 			//notice for multiplePurchase, variable waitSec represents number of purchases to be made, not seconds to wait
 			default: System.out.println(parameters[0] + " not found. No such method exists.");
 		}
 	}
 	
-	
+
 	
 	//The next 3 methods are the basic unit functions of this class (click/enter text/clear text) that forms the basis all other 
 	//more complicated functions. More (for example, scrool up/down) basic functions are to be added as needed	
@@ -302,9 +303,46 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 /* Pre: 	waitSec is a positive integer, 
  * Post: 	The Side Menu is displayed.
  */	
-		this.clickButton(waitSec, "SideMenuShowMenu");
+		this.clickButton(waitSec, "SideMenuShowMenu"); 
 	}
 
+
+	public boolean test(int waitSec, String method, String fieldName, String expectedValue) throws InterruptedException {
+		Thread.sleep(waitSec*1000);
+		boolean testResult = false;
+		String actualValue = "";
+				switch (method) {
+			case "equal": {
+				actualValue = this.findElementByXPath(pElement.get(fieldName)).getText();
+				return this.logTestResult("Current page", actualValue, expectedValue);
+			}
+			case "isOnPage": {
+				actualValue = this.findCurrentPage(0);
+				return this.logTestResult("Current page", actualValue, expectedValue);
+			}
+			default: {
+				testResult = false;
+				Reporter.log(method + " is not a defined test methodology, no test was conducted.");
+				return testResult;	
+			}
+		}
+	}
+	
+
+	public boolean logTestResult (String fieldName, String actualValue, String expectedValue) {
+		boolean testResult = false;
+		Assert.assertEquals(actualValue, expectedValue);
+		if (actualValue.equals(expectedValue)) {
+			testResult = true;
+			Reporter.log(fieldName + " is equal to " + expectedValue + ", test passed.");
+			return testResult;
+		}
+		else {
+			testResult = false;
+			Reporter.log(fieldName + " is expected to be "+ expectedValue + ", but is actually equal to: " + actualValue+ ", test failed.");
+			return testResult;
+		}
+	}
 	
 	
 //The next set of functions (launch & findCurrentPage & multiplePurchase, etc) are attempts to implement "reproduce steps" and are not completed yet.
@@ -324,7 +362,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					// Have multiple user to select from, select the user specified in Config file to advance to Enter PIN page
 				}
 				case "EnterPIN": {
-					Reporter.log("app launched and awaiting for login");
+					Reporter.log("App launched and awaiting for login.");
 					// In Enter PIN page, do nothing
 					break;
 				}
@@ -403,7 +441,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * Post: user logs in with the username and PIN defined in config file
  */
 		this.enterNumPad(waitSec, (String) this.getCapabilities().getCapability("MerchantPIN"));
-		Reporter.log("User Login performed");
+		Reporter.log("User Login performed.");
 	}
 	
 	public void multiplePurchase(int numPurchase) throws InterruptedException {
@@ -419,6 +457,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			String page = this.findCurrentPage(waitSec);
 			switch (page) {
 				case "Purchase" : {			
+//					String amount = "1000";
 					this.enterPurchaseAmount(0, "1000");
 					System.out.println("");
 					System.out.println("This is the " + (i+1)+"th purchase attempt");
@@ -442,8 +481,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					break;
 				}
 				case "PurchaseResult": {
-//					this.clickButton(0, "PurchaseResultNoReceipt");
-					this.clickButton(0, "PurchaseResultEmailReceipt");
+					this.clickButton(0, "PurchaseResultNoReceipt");
+//					this.clickButton(0, "PurchaseResultEmailReceipt");
 					System.out.println("Purchase made.");
 					Reporter.log("Transaction #"+(i+1)+" is made.");
 					i++;
@@ -461,7 +500,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 				case "PurchaseNotCompleted": {
 					this.clickButton(0, "PurchaseNotCompletedDone");
 					System.out.println("Purchase made.");
-					Reporter.log("Transaction #"+(i+1)+" is attempted by not completed.");
+					Reporter.log("Transaction #"+(i+1)+" is attempted but not completed.");
 					i++;
 					waitSec = 3;
 					break;
@@ -492,6 +531,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 				default: {
 //					iteration = numPurchase*3+1;
 					System.out.println("reached an unrecognized page: " + page);
+					this.clickButton(0,"NoNetworkConnectionretry");
+					//if an page is not recognized, try to see if there is a button "RETRY". if yes, click it
 					waitSec = 5;
 					
 				}
