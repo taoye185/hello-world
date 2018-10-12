@@ -32,11 +32,31 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * configuration file that's specific to each apk. Note the configuration file is currently partially complete
  * and needs to be maintained and expanded in the future.
  * 
+ * pageName: a mapping between all the mobilePage identifiers and their actual mobilePage object. This is used
+ * extensively to determine which page the app is currently displaying and what elements should be available
+ * on the page.
+ * 
  * public MWAndroidDriver (URL, DesiredCapabilities, String): a constructor method to read the configuration 
  * files for the above mentioned pElement mapping
  * 
  * testScenarioConstructor: This method will dynamically decide which specific method is going to be revoked 
  * depending on the parameters passed in.
+ * 
+ * clickButton: This method clicks a URI specified by the parameter - this is one of the basic method that
+ * will be the basis of other more complex methods
+ * 
+ * inputText: This method will input a String into a text field specified by a URI - this is one of the basic method that
+ * will be the basis of other more complex methods
+ * 
+ * clearText: This method will clear all contents from a text field specified by a URI - this is one of the basic method that
+ * will be the basis of other more complex methods
+ * 
+ * setBooleanValue: This method will set a checkbox/switch or any clickable element that has an on/off boolean 
+ * value to the desired state - this is one of the basic method that will be the basis of other more complex methods
+ * 
+ * test: This method is used to compare expected values and actual values to determine whether a test case is passed or not
+ * 
+ * logTestResult: This auxiliary method is used to log testing messages to the final testing report
  * 
  * merchantSignIn: This method detects whether the Merchant Signin page is active, and input the merchant ID
  * parameter if positive.
@@ -44,8 +64,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * merchantPassword: This method detects whether the Merchant Password page is active, and input the password
  * parameter if positive.
  * 
- * enterPIN: This method detects whether the Enter PIN page is active, and input the PIN one digit at a time 
- * if positive.
+ * enterNumPad: This method enters a string of digits into the numPad present.
  * 
  * enterEmptyPIN: This method detects whether the Enter PIN page is active, and click continue without enter a
  * PIN if positive.
@@ -53,16 +72,45 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * clickNext: This method click next on the purchase description window - to be expanded into input descriptions 
  * later
  * 
- * clickButton: This method clicks a URI specified by the parameter - use this method when no validation or
- * assertions are needed for a simple step
+ * showSideMenu: This method clicks the sidemenu button to open up the side menu - can be easily replaced with the
+ * basic clickButton method, but since this would be used very frequently, decided it's worthwhile to have a method
+ * just for this
  * 
+ * findCurrentPage: This method will read through a list of unique page identifiers to determine which page is currently
+ * open in the app. This is essential when facing scenarios that could lead to multiple possible outcomes.
+ * 
+ * launch: A complex method design to automatically react to all different scenarios when a CBA/PEP app is launched,
+ * from possible merchant sign-in, to possible provision, to possible user selection, etc, all the way until the user
+ * is asked to enter their PIN for login. - This method is largely functional but not yet completed for a number of special
+ * cases.
+ * 
+ * login: This method will automatically perform user login with the PIN supplied from configuration file
+ * 
+ * multiplePurchase: This method is a complex method design to make multiple purchases regardless of whether the purchase is
+ * a success of a failure. It is assumed that the user is already logged in. - This method is largely functional but not yet 
+ * completed for a number of special cases.
+ * 
+ * enterPurchaseAmount: This method enters the purchase amount on a numpad.
+ * 
+ * checkPageOverlap: This is a complex method that will determine whether any element on the page is having boundaries overlapping
+ * with each other - not completed yet
+ * 
+ * isAligned: This is a complex method that will determine whether any element on the page is properly aligned or not
+ * - not completed yet
+ * 
+ * isOverlap: This is an auxiliary method that will help the checkPageOverlap method during testing - not completed yet
+ * 
+ * coordIsPartiallyContainedIn: This is an auxiliary method that will help the checkPageOverlap method during 
+ * testing - not completed yet
+ * 
+ * areaWithTwoRectangle: This is an auxiliary method that will help the checkPageOverlap method during 
+ * testing - not completed yet
  */
 	
 	private Map<String, String> pElement = new HashMap<String, String>();
 	private Map<String, mobilePage> pageName = new HashMap<String, mobilePage>();
 	private String elementName;
 	private String elementPath;
-//	private Logger testLog = Logger.getLogger("log test.txt");
 	private Vector pages = new Vector();
 	
 	
@@ -72,10 +120,10 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * 		elements
  */
 		super(url,capabilities);
-//		System.out.println(getClass().getClassLoader().getResource("logging.properties"));
-		// TODO Auto-generated constructor stub
+
 		try { 
-	        FileReader filereader = new FileReader(elementConfig);  //reads the elementConfig configuration file. the ID field of the file are assumed to be unique
+	        FileReader filereader = new FileReader(elementConfig);  
+	        //reads the elementConfig configuration file. the ID field of the file are assumed to be unique
 	        CSVReader csvReader = new CSVReader(filereader); 
 	        String[] nextRecord; 
 	        int i = 0;
@@ -107,7 +155,6 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	        csvReader.close();
 	    } 
 	    catch (Exception e) { 
-	    	//this.logerror(e);
 	    	e.printStackTrace(); 
 	    } 		
 	}
@@ -131,8 +178,9 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			case "launch": {this.launch(waitSec);break;}
 			case "login": {this.login(waitSec); break;}
 			case "multiplePurchase": {this.multiplePurchase(waitSec); break;}
-			case "test": {this.test(waitSec, parameters[5], parameters[6], parameters[7]);break;}
 			//notice for multiplePurchase, variable waitSec represents number of purchases to be made, not seconds to wait
+			case "test": {this.test(waitSec, parameters[5], parameters[6], parameters[7]);break;}
+			case "setBooleanValue": {this.setBooleanValue(waitSec, parameters[2],  parameters[3]); break;}
 			default: System.out.println(parameters[0] + " not found. No such method exists.");
 		}
 	}
@@ -181,6 +229,29 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			}
 			catch (Exception e) {
 				System.out.println("exception caught during text clearance, failed to find " + URI);
+			}
+		}
+		
+		public void setBooleanValue(int waitSec, String URI, String Value) throws InterruptedException {
+/* Pre: 	waitSec is a non-negative integer, URI are accurately defined in the configuration file
+ * 			URI is an element that can be click and has a boolean value of on/off
+ * 			Value is a String containing either "yes" or "no"
+ * Post: 	The URI value is set to the value specified in the parameter
+ */				
+			Thread.sleep(waitSec*1000);
+			boolean expectedValue = false;
+			if (Value.equals("yes")) {
+				expectedValue = true;
+			}
+			try {
+				boolean currentValue = this.findElementByXPath(pElement.get(URI)).isSelected();
+				if (expectedValue != currentValue ) {
+					this.findElementByXPath(pElement.get(URI)).click();
+					Reporter.log(URI + " is set to: " + Value);
+				}
+			}
+			catch (Exception e) {
+				System.out.println("exception caught during checkbox clicking, failed to find " + URI);
 			}
 		}
 		
@@ -308,6 +379,10 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 
 
 	public boolean test(int waitSec, String method, String fieldName, String expectedValue) throws InterruptedException {
+/* Pre: 	waitSec is a positive integer, method is either "equal" or "isOnPage" (to be expanded)
+ * 			fieldName is a URI - if method is "isOnPage", fieldName can be null as it is not used.
+ * Post: 	The method returns a boolean state depending on whether the expected value equal to the actual value.
+ */	
 		Thread.sleep(waitSec*1000);
 		boolean testResult = false;
 		String actualValue = "";
@@ -327,9 +402,11 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			}
 		}
 	}
-	
 
 	public boolean logTestResult (String fieldName, String actualValue, String expectedValue) {
+/* Pre: 	none
+ * Post: 	The method logs the test result to the HTML test result page.
+ */			
 		boolean testResult = false;
 		Assert.assertEquals(actualValue, expectedValue);
 		if (actualValue.equals(expectedValue)) {
@@ -702,7 +779,7 @@ System.out.println("exception caught when comparing overlaps");
 	
 	
 	
-	public boolean isaligned (String mode, String URI1, String URI2) {
+	public boolean isAligned (String mode, String URI1, String URI2) {
 /* Pre: all elements are appropriately defined and initialized
  * Post: return true if all elements are aligned. return false otherwise
  */

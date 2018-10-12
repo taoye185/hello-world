@@ -1,0 +1,9 @@
+Capabilities Name,Capabilities Value
+appPackage,com.mobeewave.cba.mpos.debug
+appActivity,com.mobeewave.mpos2.login.LoginActivity
+app,C:\\Users\\YeTao\\eclipse-workspace\\automationTemplates\\apps\\cba-v1.4.4-integration-debug.apk
+MerchantID,taoye67890123004
+MerchantPassword,Thankyou1@
+MerchantPIN,123456
+Username,SignInSelectionFirstUser
+CustomerEmail,ytao@mobeewave.com

@@ -1,0 +1,11 @@
+Method Name, Seconds to Wait, URI, Value, action, AssertOperation, ActualURI, Expected Value
+merchantSignin,6,005040100000004
+merchantPassword,5,6Z214UU53
+clickButton,5,SignInSelectionFirstUser
+enterEmptyPIN,5
+enterPIN,5,123456
+clickButton,5,SideMenuShowMenu
+clickButton,5,SideMenuSettings
+enterPIN,5,123456
+clickButton,5,SettingsTerminalAdvancedTab
+checkPageOverlap,5,SettingsAdvanced

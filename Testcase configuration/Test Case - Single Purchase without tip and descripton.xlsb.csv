@@ -1,0 +1,12 @@
+Method Name, Seconds to Wait, URI, Value, action, AssertOperation, ActualURI, Expected Value
+launch,5,,,,,,
+login,5,,,,,,
+showSideMenu,5,,,,,,
+clickButton,5,SideMenuSettings,,,,,
+login,5,,,,,,
+setBooleanValue,5,SettingsTerminalAddTipValue,yes,,,,
+setBooleanValue,5,SettingsTerminalAddDescriptionValue,yes,,,,
+showSideMenu,5,,,,,,
+clickButton,5,SideMenuPurchase,,,,,
+multiplePurchase,1,,,,,,
+test,5,PurchaseResultResultText,Purchase approved,,,,

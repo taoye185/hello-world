@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.openqa.selenium.By;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.Assert;
+import org.testng.Reporter;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -41,7 +42,8 @@ import java.util.logging.Logger;
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
+	static String groupfile = ".\\src\\Testcase configuration\\Test Group - CBA Sanity.csv"; 
+//	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
 	static String appFile = ".\\src\\Testcase configuration\\CBA Config.csv"; 
@@ -90,7 +92,6 @@ public class AutomationMain{
 		        CSVReader csvReader = new CSVReader(filereader); 
 		        String[] nextRecord; 
 		        int i = 0;
-
 		        while ((nextRecord = csvReader.readNext()) != null) { 
             		if (i>0) {			            		//unless this is title row, set the capabilities
             			capabilities.setCapability(nextRecord[0], nextRecord[1]); 	
@@ -105,14 +106,10 @@ public class AutomationMain{
 		    catch (Exception e) { 
 		        e.printStackTrace(); 
 		    } 		
-		
-		mobiledriver = new MWAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
-		//construct a MWAndroidDriver to allow more flexibility and encapsulation compared to the standard AndroidDriver
-
 	}
 
 	@AfterTest
-	public void afterTest( ){
+	public void afterTest( ) throws MalformedURLException{
 
 		try {
 //		sendPDFReportByGMail("taooyee@gmail.com", "Thankyou1", "ytao@mobeewave.com", "test Report", "");
@@ -122,34 +119,57 @@ public class AutomationMain{
 		}
 //		There is an excellent tutorial for emailing testing result at https://www.guru99.com/pdf-emails-and-screenshot-of-test-reports-in-selenium.html,
 //		The current functionality can be further expanded by following instructions from there.
-		
-//		mobiledriver.quit();
+	
+
 	}
 
 	
 	@Test
-	public static void appTesting() throws InterruptedException{
+	public static void appTesting() throws InterruptedException, MalformedURLException{
 		// read from the casefile configuration file and construct the respective test case methods
-		try { 
-	        FileReader filereader = new FileReader(casefile); 
-	        CSVReader csvReader = new CSVReader(filereader); 
-	        String[] nextRecord; 
-	        int row = 0;
-	        while ((nextRecord = csvReader.readNext()) != null) { 
 
-	            if (row > 0) { 	            //unless it is title row, construct and execute the method
-	            mobiledriver.testScenarioConstructor(nextRecord); 
+		try { 
+	        FileReader filereader = new FileReader(groupfile); 
+	        CSVReader csvReader = new CSVReader(filereader); 
+	        String[] nextCase; 
+	        int caseRow = 0;
+	        while ((nextCase = csvReader.readNext()) != null) { 
+	            if (caseRow > 0) { 	            //unless it is title row, construct and execute the method
+	            	String casefile = nextCase[1];
+	    			mobiledriver = new MWAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
+	    			//construct a MWAndroidDriver to allow more flexibility and encapsulation compared to the standard AndroidDriver	
+	    			Reporter.log("Test Case: " + nextCase[0] + " initiated.");
+	    			System.out.println("mobiledriver created.");
+	    	        FileReader casefilereader = new FileReader(casefile); 
+	    	        CSVReader casecsvReader = new CSVReader(casefilereader); 
+	    	        String[] nextRecord; 	    			
+	    	        int row = 0;
+	    	        while ((nextRecord = casecsvReader.readNext()) != null) { 
+
+	    	            if (row > 0) { 	            //unless it is title row, construct and execute the method
+	    	            mobiledriver.testScenarioConstructor(nextRecord); 
+	            		//it is assumed that the first column of the config file contains method name to be called
+	            		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
+	    	            }
+	    	            row++;
+	    	        } 
+	    	        casecsvReader.close();
+	    			Reporter.log("Test Case: " + nextCase[0] + " completed.");
+	    			Reporter.log("-----------------------------------");
+	    			mobiledriver.quit();
         		//it is assumed that the first column of the config file contains method name to be called
         		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method
 	            }
-	            row++;
+	            caseRow++;
 	        } 
-	        csvReader.close();
+	        csvReader.close();			
+
 	    } 
 	    catch (Exception e) { 
 	        e.printStackTrace(); 
 	    } 	
 		//end of test case
+
 	}
 	
 	
@@ -208,19 +228,5 @@ public class AutomationMain{
     	}
 
     }
-
-
- /*   
-	private void logMessage(String message)
-	{
-		 
-		testLog.log( Level.FINE, message ); 
-	}
-	private void logError(Exception ex)
-	{
-		testLog.log( Level.SEVERE, ex.toString(), ex );
-		 
-	}
-	*/
 	
 }
