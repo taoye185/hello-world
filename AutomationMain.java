@@ -42,14 +42,14 @@ import java.util.logging.Logger;
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-	static String groupfile = ".\\src\\Testcase configuration\\Test Group - CBA Sanity.csv"; 
+	static String groupfile = ".\\src\\Testcase configuration\\Test Group - CBA Text String Change Tap Card Screen Flow.csv"; 
 //	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-	static String appFile = ".\\src\\Testcase configuration\\CBA Config.csv"; 
+	static String appFile = ".\\src\\Testcase configuration\\Config - CBA Debug.csv"; 
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
-	static String elementFile = ".\\src\\Testcase configuration\\CBA app elements.csv"; 
+	static String elementFile = ".\\src\\Testcase configuration\\app elements - CBA Pre-Prod Debug.csv"; 
 	//This configuration file contains the URI for all the relevant WebElement that the mobile app contains - QA engineers
 	//should update this file whenever the app is modified in a way such that one or more WebElement has been created or changed
 	//to a new URI.
