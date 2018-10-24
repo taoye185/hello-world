@@ -1,0 +1,5 @@
+Config,File name
+groupFile,.\\src\\Testcase configuration\\Test Group - CBA debug.csv
+appFile,.\\src\\Testcase configuration\\Config - CBA Debug.csv
+elementFile,.\\src\\Testcase configuration\\app elements - CBA Pre-Prod Debug.csv
+deviceFile,.\\src\\Testcase configuration\\device list.csv

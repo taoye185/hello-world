@@ -42,40 +42,75 @@ import java.util.logging.Logger;
 
 public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
-	static String groupfile = ".\\src\\Testcase configuration\\Test Group - CBA Text String Change Tap Card Screen Flow.csv"; 
+	static String testManagementFile = ".\\src\\Testcase configuration\\Test Management.csv";
+	static String groupFile = "";
+	static String appFile = "";
+	static String elementFile = "";
+	static String deviceFile = "";
+//	static String groupFile = ".\\src\\Testcase configuration\\Test Group - CBA debug.csv"; 
 //	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-	static String appFile = ".\\src\\Testcase configuration\\Config - CBA Debug.csv"; 
+//	static String appFile = ".\\src\\Testcase configuration\\Config - CBA Debug.csv"; 
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
-	static String elementFile = ".\\src\\Testcase configuration\\app elements - CBA Pre-Prod Debug.csv"; 
+//	static String elementFile = ".\\src\\Testcase configuration\\app elements - CBA Pre-Prod Debug.csv"; 
 	//This configuration file contains the URI for all the relevant WebElement that the mobile app contains - QA engineers
 	//should update this file whenever the app is modified in a way such that one or more WebElement has been created or changed
 	//to a new URI.
-	static String deviceFile = ".\\src\\Testcase configuration\\device list.csv"; 
+//	static String deviceFile = ".\\src\\Testcase configuration\\device list.csv"; 
 	static DesiredCapabilities capabilities = new DesiredCapabilities();
 	
 	@BeforeTest
 	public void beforeTest( ) throws MalformedURLException {
-
-
-
-		try { 	//read the remaining capability value from the configuration file
-	        FileReader filereader = new FileReader(deviceFile); 
+		try { 	
+			FileReader fileReaderTMF = new FileReader(testManagementFile); 
+			//read the different configuration files to be loaded from the managing file
+	        CSVReader csvReaderFR1 = new CSVReader(fileReaderTMF); 
+	        String[] nextRecordTMF; 
+	        int i = 0;
+	        while ((nextRecordTMF = csvReaderFR1.readNext()) != null) { 
+ 	        	if (i>0) {		//unless this is title row, read the configuration file locations
+ 	        		switch (nextRecordTMF[0]) {
+ 	        			case "groupFile":{
+ 	        				groupFile = nextRecordTMF[1];
+ 	        				break;
+ 	        			}
+ 	        			case "appFile":{
+ 	        				appFile = nextRecordTMF[1];
+ 	        				break;
+ 	        			}
+ 	        			case "elementFile":{
+ 	        				elementFile = nextRecordTMF[1];
+ 	        				break;
+ 	        			}
+ 	        			case "deviceFile":{
+ 	        				deviceFile = nextRecordTMF[1];
+ 	        				break;
+ 	        			}
+ 	        			default: {
+ 	        				break;
+ 	        			} //case
+ 	        		} //switch
+          		} //if
+	            i++;
+	        } //while
+            csvReaderFR1.close();	//close management file
+			
+			FileReader filereader = new FileReader(deviceFile); 
+			//read the remaining capability value from the configuration file
 	        CSVReader csvReader = new CSVReader(filereader); 
 	        String[] nextRecord; 
-	        int i = 0;
-
-	        while ((nextRecord = csvReader.readNext()) != null) { //this code is only good for one device initiation. will need to modify to accomodate for multiple devices
- 	        	if (i>0 && Integer.parseInt(nextRecord[0])==1) {			            		//unless this is title row, set the capabilities
+	        int j = 0;
+	        while ((nextRecord = csvReader.readNext()) != null) { //this code is only good for one device initiation. will need to modify to accommodate for multiple devices
+ 	        	if (j>0 && Integer.parseInt(nextRecord[0])==1) {			            		//unless this is title row, set the capabilities
          			capabilities.setCapability(MobileCapabilityType.APPIUM_VERSION, nextRecord[1]); 
         			capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION, nextRecord[2]);
         			capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,nextRecord[3]);
         			capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,nextRecord[4]);
         			capabilities.setCapability(MobileCapabilityType.DEVICE_NAME, nextRecord[5]);
           		}
-	            i++;
+	            j++;
 	        } 
 	            csvReader.close();
     			capabilities.setCapability("noReset", true); 
@@ -83,7 +118,6 @@ public class AutomationMain{
     			capabilities.setCapability("newCommandTimeout", 2000);
 	    } 
 	    catch (Exception e) { 
-
 	        e.printStackTrace(); 
 	    } 		
 		
@@ -126,10 +160,10 @@ public class AutomationMain{
 	
 	@Test
 	public static void appTesting() throws InterruptedException, MalformedURLException{
-		// read from the casefile configuration file and construct the respective test case methods
+		// read from the groupFile configuration file and construct the respective test case methods
 
 		try { 
-	        FileReader filereader = new FileReader(groupfile); 
+	        FileReader filereader = new FileReader(groupFile); 
 	        CSVReader csvReader = new CSVReader(filereader); 
 	        String[] nextCase; 
 	        int caseRow = 0;
@@ -138,14 +172,13 @@ public class AutomationMain{
 	            	String casefile = nextCase[1];
 	    			mobiledriver = new MWAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
 	    			//construct a MWAndroidDriver to allow more flexibility and encapsulation compared to the standard AndroidDriver	
-	    			Reporter.log("Test Case: " + nextCase[0] + " initiated.");
-	    			System.out.println("mobiledriver created.");
+	    			mobiledriver.logColorText("blue", "Test Case: " + nextCase[0] + " initiated.");
+	    			System.out.println(nextCase[0] + "mobiledriver created.");
 	    	        FileReader casefilereader = new FileReader(casefile); 
 	    	        CSVReader casecsvReader = new CSVReader(casefilereader); 
 	    	        String[] nextRecord; 	    			
 	    	        int row = 0;
 	    	        while ((nextRecord = casecsvReader.readNext()) != null) { 
-
 	    	            if (row > 0) { 	            //unless it is title row, construct and execute the method
 	    	            mobiledriver.testScenarioConstructor(nextRecord); 
 	            		//it is assumed that the first column of the config file contains method name to be called
@@ -154,8 +187,9 @@ public class AutomationMain{
 	    	            row++;
 	    	        } 
 	    	        casecsvReader.close();
-	    			Reporter.log("Test Case: " + nextCase[0] + " completed.");
-	    			Reporter.log("-----------------------------------");
+	    			mobiledriver.logColorText("blue", "Test Case: " + nextCase[0] + " completed.");
+//	    	        Reporter.log("<font color='blue'>Test Case: " + nextCase[0] + " completed.</font>");
+	    			Reporter.log("-----------------------------------<br>");
 	    			mobiledriver.quit();
         		//it is assumed that the first column of the config file contains method name to be called
         		//it is assumed that from the second column on and up to the 11th column, the config file contains parameters to be used in the called method

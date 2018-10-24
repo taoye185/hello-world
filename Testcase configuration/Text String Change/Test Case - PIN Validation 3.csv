@@ -1,0 +1,31 @@
+Method Name, Seconds to Wait, URI, Value, action, AssertOperation, ActualURI, Expected Value
+waitUntilPage,120,SignInSelection,,,,,
+clickButton,0,SignInSelectionFirstUser,,,,,
+waitUntilPage,120,AccountLocked,,,,,
+clickButton,0,AccountLockedResetPIN,,,,,
+waitUntilPage,120,ForgotPIN,,,,,
+clickButton,0,ForgotPINResetPIN,,,,,
+waitUntilPage,30,ResetPIN,,,,,
+inputText,0,ResetPINMerchantIDValue,taoye67890123010,,,,
+inputText,1,ResetPINPasswordValue,Thankyou1@,,,,
+clickButton,1,ResetPINResetPIN,,,,,
+waitUntilPage,120,EnterNewPIN,,,,,
+test,0,,,,isOnPage,,EnterNewPIN
+test,0,,,,equal,EnterNewPINTitle,Enter new PIN
+test,0,,,,equal,EnterNewPINProcessTitle,Registration
+test,0,,,,equal,EnterNewPINTextBody,element not found
+clickButton,0,EnterPINOK,,,,,
+test,1,,,,equal,EnterNewPINTextBody,PIN must be 6 digits
+enterNumPadOK,1,123456,,,,,
+waitUntilPage,120,ConfirmNewPIN,,,,,
+test,0,,,,isOnPage,,ConfirmNewPIN
+test,0,,,,equal,ConfirmNewPINProcessTitle,Registration
+test,0,,,,equal,ConfirmNewPINTextBody,Confirm new PIN
+test,0,,,,equal,ConfirmNewPINTitle,element not found
+enterNumPadOK,0,123455,,,,,
+test,1,,,,equal,EnterNewPINTextBody,PINs don't match
+waitUntilPage,120,EnterNewPIN,,,,,
+enterNumPadOK,0,123456,,,,,
+waitUntilPage,120,ConfirmNewPIN,,,,,
+enterNumPadOK,0,123456,,,,,
+waitUntilPage,120,Purchase,,,,,

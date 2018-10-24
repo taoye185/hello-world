@@ -60,6 +60,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * 
  * logTestResult: This auxiliary method is used to log testing messages to the final testing report
  * 
+ * 
  * merchantSignIn: This method detects whether the Merchant Signin page is active, and input the merchant ID
  * parameter if positive.
  * 
@@ -80,6 +81,9 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * 
  * findCurrentPage: This method will read through a list of unique page identifiers to determine which page is currently
  * open in the app. This is essential when facing scenarios that could lead to multiple possible outcomes.
+ * 
+ * waitUntilPage: This auxiliary method will check whether the app has loaded a specific page. If the target page has been
+ * loaded or the timeout limit is reached, the method will exit, allowing the next step in the test to be taken
  * 
  * launch: A complex method design to automatically react to all different scenarios when a CBA/PEP app is launched,
  * from possible merchant sign-in, to possible provision, to possible user selection, etc, all the way until the user
@@ -114,6 +118,13 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	private String elementName;
 	private String elementPath;
 	private Vector pages = new Vector();
+	static private String logPassColor ="green";
+	static private String logFailClor ="red";
+	static private String logEmphasisColor ="brown";
+	static private String logInfoColor ="grey";
+	static private String logCaseColor ="blue";
+
+	
 	
 	
 	public MWAndroidDriver(URL url, DesiredCapabilities capabilities, String elementConfig) {
@@ -167,27 +178,29 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * 		Data validation would be needed for this method which is not implemented yet.
  */
 		int waitSec = Integer.parseInt(parameters[1]);
-		System.out.println("The method \"" +parameters[0] + " ("  + ")\" are called");
+		System.out.println("The method \"" +parameters[0] + "("  + ")\" are called");
 		switch (parameters[0]) {
-			case "merchantSignin": {this.merchantSignin(waitSec, parameters[2]); break;}
-			case "merchantPassword": {this.merchantPassword(waitSec, parameters[2]);break;}
-			case "enterNumPadOK": {this.enterNumPadOK(waitSec, parameters[2]);break;}
-			case "enterNumPad": {this.enterNumPad(waitSec, parameters[2]); break;}
-			case "enterPurchaseAmount": {this.enterPurchaseAmount(waitSec, parameters[2]); break;}
-			case "enterEmptyPIN": {this.enterEmptyPIN(waitSec);break;}
-			case "clickNext": {this.clickNext(waitSec);break;}
-			case "showSideMenu": {this.showSideMenu(waitSec);break;}
-			case "clickButton": {this.clickButton(waitSec, parameters[2]);break;}
-			case "inputText": {this.inputText(waitSec, parameters[2], parameters[3]);break;}
 			case "checkPageOverlap": {this.checkPageOverlap(waitSec, parameters[2]);break;}
+			case "clickButton": {this.clickButton(waitSec, parameters[2]);break;}		
+			case "clickNext": {this.clickNext(waitSec);break;}		
+			case "enterEmptyPIN": {this.enterEmptyPIN(waitSec);break;}
+			case "enterNumPad": {this.enterNumPad(waitSec, parameters[2]); break;}
+			case "enterNumPadOK": {this.enterNumPadOK(waitSec, parameters[2]);break;}
+			case "enterPurchaseAmount": {this.enterPurchaseAmount(waitSec, parameters[2]); break;}
+			case "inputText": {this.inputText(waitSec, parameters[2], parameters[3]);break;}
 			case "launch": {this.launch(waitSec);break;}
+			case "logComment": {this.logComment(waitSec, parameters[2]); break;}
 			case "login": {this.login(waitSec); break;}
+			case "merchantPassword": {this.merchantPassword(waitSec, parameters[2]);break;}
+			case "merchantSignin": {this.merchantSignin(waitSec, parameters[2]); break;}
 			case "multiplePurchase": {this.multiplePurchase(waitSec, parameters[2],parameters[3],parameters[4],parameters[5],parameters[6],parameters[7] ); break;}
 			//notice for multiplePurchase, variable waitSec represents number of purchases to be made, not seconds to wait
+			case "setBooleanValue": {this.setBooleanValue(waitSec, parameters[2],  parameters[3]); break;}
+			case "showSideMenu": {this.showSideMenu(waitSec);break;}
 			case "singlePurchase": {this.singlePurchase(waitSec,parameters[2],parameters[3],parameters[4],parameters[5] ); break;}
 			case "singlePurchaseUntil": {this.singlePurchaseUntil(waitSec,parameters[2],parameters[3],parameters[4],parameters[5], parameters[6]);break;}
 			case "test": {this.test(waitSec, parameters[5], parameters[6], parameters[7]);break;}
-			case "setBooleanValue": {this.setBooleanValue(waitSec, parameters[2],  parameters[3]); break;}
+			case "waitUntilPage": {this.waitUntilPage(waitSec, parameters[2]); break;}
 			default: System.out.println(parameters[0] + " not found. No such method exists.");
 		}
 	}
@@ -259,7 +272,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					this.findElementByXPath(pElement.get(URI)).click();
 					currentValue = this.findElementByXPath(pElement.get(URI)).getAttribute("checked");
 //					System.out.println("the switch is: " + currentValue);
-					Reporter.log(URI + " is set to: " + Value);
+//					Reporter.log(URI + " is set to: " + Value);
+					this.logColorText(logInfoColor, URI + " is set to: " + Value);
 				}
 			}
 			catch (Exception e) {
@@ -430,7 +444,8 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			}
 			default: {
 				testResult = false;
-				Reporter.log(method + " is not a defined test methodology, no test was conducted.");
+//				Reporter.log(method + " is not a defined test methodology, no test was conducted.");
+				this.logColorText("red", method + " is not a defined test methodology, no test was conducted.");
 				return testResult;	
 			}
 		}
@@ -446,21 +461,29 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			Assert.assertEquals(actualValue, expectedValue);
 			if (actualValue.equals(expectedValue)) {
 				testResult = true;
-				Reporter.log(fieldName + " is equal to " + expectedValue + ", test passed.");
+				Reporter.log(fieldName + " is equal to " + expectedValue + ", <font color='green'>test passed</font>.");
 				return testResult;
 			}
 			else {
 				testResult = false;
-				Reporter.log(fieldName + " is expected to be "+ expectedValue + ", but is actually equal to: " + actualValue+ ", test failed.");
+				Reporter.log(fieldName + " is expected to be <font color='brown'>"+ expectedValue + "</font>, but is actually equal to: <font color='brown'>" + actualValue+ "</font>, <font color='red'>test failed</font>.");
 				return testResult;
 			}
 		}
 		catch (AssertionError e) {
 		// assertion failed
 			testResult = false;
-			Reporter.log(fieldName + " is expected to be "+ expectedValue + ", but is actually equal to: " + actualValue+ ", test failed.");
+			Reporter.log(fieldName + " is expected to be <font color='brown'>"+ expectedValue + "</font>, but is actually equal to: <font color='brown'>" + actualValue+ "</font>, <font color='red'>test failed</font>.");
 			return testResult; 
 		}
+	}
+	
+	public void logColorText (String color, String text) {
+		Reporter.log("<font color='"+color+"'>"+text +"</font>");
+	}
+	
+	public void logComment (int waitSec, String comment ) {
+		Reporter.log(comment);
 	}
 	
 	
@@ -481,7 +504,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					// Have multiple user to select from, select the user specified in Config file to advance to Enter PIN page
 				}
 				case "EnterPIN": {
-					Reporter.log("App launched and awaiting for login.");
+					this.logColorText(logInfoColor,"App launched and awaiting for login.");
 					// In Enter PIN page, do nothing
 					break;
 				}
@@ -582,7 +605,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
  * Post: user logs in with the username and PIN defined in config file
  */
 		this.enterNumPadOK(waitSec, (String) this.getCapabilities().getCapability("MerchantPIN"));
-		Reporter.log("User Login performed.");
+		this.logColorText(logInfoColor,"User Authentication performed.");
 	}
 	
 	public void multiplePurchase(int numPurchase, String tipType, String tipValue, String descriptionType, String descriptionValue, String emailType, String emailValue) throws InterruptedException {
@@ -605,21 +628,21 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					this.clickButton(0, "PurchaseResultNoReceipt");
 //					this.clickButton(0, "PurchaseResultEmailReceipt");
 					System.out.println("Purchase made.");
-					Reporter.log("Transaction #"+(i+1)+" is made.");
+					this.logColorText(logInfoColor,"Transaction #"+(i+1)+" is made.");
 					i++;
 					break;
 				}
 				case "CardNotSupported": {
 					this.clickButton(0, "CardNotSupportedTryAgain");
 					System.out.println("Purchase made.");
-					Reporter.log("Transaction #"+(i+1)+" is denied due to card not supported.");
+					this.logColorText(logInfoColor,"Transaction #"+(i+1)+" is denied due to card not supported.");
 					i++;
 					break;
 				}
 				case "PurchaseNotCompleted": {
 					this.clickButton(0, "PurchaseNotCompletedDone");
 					System.out.println("Purchase made.");
-					Reporter.log("Transaction #"+(i+1)+" is attempted but not completed.");
+					this.logColorText(logInfoColor,"Transaction #"+(i+1)+" is attempted but not completed.");
 					i++;
 					break;
 				}
@@ -656,7 +679,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 
 			}
 		}
-		Reporter.log(numPurchase + " consecutive purchases attempted.");
+		this.logColorText(logInfoColor,numPurchase + " consecutive purchases attempted.");
 	}
 	
 	public void enterPurchaseAmount(int waitSec, String amount) throws InterruptedException {
@@ -714,19 +737,19 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 				case "PurchaseResult": {	//in Purchase Result page
 					endT = LocalTime.now();	//record processing end time
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is made, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is made, Processing time is: " + betweenT + " seconds." );
 					return page;	//destination reached, end method
 				}
 				case "CardNotSupported": {	//in Purchase Result(Card not supported) page
 					endT = LocalTime.now();
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is denied due to card not supported, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is denied due to card not supported, Processing time is: " + betweenT + " seconds." );
 					return page;
 				}
 				case "PurchaseNotCompleted": {	//in Purchase Result(Purchase not completed) page
 					endT = LocalTime.now();
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is attempted but not completed, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is attempted but not completed, Processing time is: " + betweenT + " seconds." );
 					return page;
 				}
 				case "NewTagScanned": {		//known bug encountered, external page on foreground, not implemented yet
@@ -823,19 +846,19 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 				case "PurchaseResult": {	//in Purchase Result page
 					endT = LocalTime.now();	//record processing end time
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is made, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is made, Processing time is: " + betweenT + " seconds." );
 					return page;	//destination reached, end method
 				}
 				case "CardNotSupported": {	//in Purchase Result(Card not supported) page
 					endT = LocalTime.now();
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is denied due to card not supported, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is denied due to card not supported, Processing time is: " + betweenT + " seconds." );
 					return page;
 				}
 				case "PurchaseNotCompleted": {	//in Purchase Result(Purchase not completed) page
 					endT = LocalTime.now();
 					betweenT = ChronoUnit.SECONDS.between(startT, endT);
-					Reporter.log("Transaction is attempted but not completed, Processing time is: " + betweenT + " seconds." );
+					this.logColorText(logInfoColor,"Transaction is attempted but not completed, Processing time is: " + betweenT + " seconds." );
 					return page;
 				}
 				case "NewTagScanned": {		//known bug encountered, external page on foreground, not implemented yet
@@ -949,7 +972,14 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 }
 
 		
-
+	public String waitUntilPage (int timeout, String targetPage) throws InterruptedException {
+		LocalTime startT = LocalTime.now();
+		String currentPage = this.findCurrentPage(0);
+		while ((!targetPage.equals(currentPage)) && (ChronoUnit.SECONDS.between(startT, LocalTime.now())<timeout)) {
+			currentPage = this.findCurrentPage(1);
+		}
+		return currentPage;
+	}
 	
 	
 	
