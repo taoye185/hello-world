@@ -123,6 +123,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	static private String logEmphasisColor ="brown";
 	static private String logInfoColor ="grey";
 	static private String logCaseColor ="blue";
+	static private int defaultTimeOutSec = 15;
 
 	
 	
@@ -483,7 +484,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	}
 	
 	public void logComment (int waitSec, String comment ) {
-		Reporter.log(comment);
+		this.logColorText(logInfoColor, comment);
 	}
 	
 	
@@ -499,44 +500,14 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			iteration ++;
 			currentPage = this.findCurrentPage(waitSec); //decide what to do depending on which page the user is on
 			switch (currentPage) {
-				case "SignInSelection": {
-					this.clickButton(0, (String) this.getCapabilities().getCapability("Username")); break;
-					// Have multiple user to select from, select the user specified in Config file to advance to Enter PIN page
-				}
-				case "EnterPIN": {
-					this.logColorText(logInfoColor,"App launched and awaiting for login.");
-					// In Enter PIN page, do nothing
-					break;
-				}
-				case "MerchantSignIn": {
-					this.merchantSignin(0, (String) this.getCapabilities().getCapability("MerchantID"));
-					// First time merchant registration page, entering merchant credentials
-					// potential problem: taking too long to register, needs to add more checks and logics later
-					break;
-				}
-				case "MerchantPassword": {
-					this.merchantPassword(0, (String) this.getCapabilities().getCapability("MerchantPassword"));
-					break;					
-				}
-				case "PaymentAcceptanceSetup": {
-					this.clickButton(0, "PaymentAcceptanceSetupContinue");break;
-					// Provision page, click continue to start provision
-				}
-				case "UpdateRequired": {
-					this.clickButton(0, "UpdateRequiredUpdatenow"); break;
-				}
 				case "ActivatingSecureElement": {
 					Thread.sleep(30000);break;
 					//Under Provisioning, wait for 30 seconds before rechecking progress
 				}
-				case "UpdatingSecureElement": {
-					Thread.sleep(30000);break;
-					//Under Provisioning, wait for 30 seconds before rechecking progress
-				}
-				
-				case "ProvisionComplete": {
-					this.clickButton(0, "ProvisionCompleteDone");break;
-					//Provision is done, proceed
+
+				case "ConfirmNewPIN": {
+					this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
+					break;					
 				}
 				case "CreateNewPassword": {
 					this.inputText(0, "CreateNewPasswordEnterPassword", (String) this.getCapabilities().getCapability("MerchantNewPassword"));
@@ -548,9 +519,40 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
 					break;
 				}
-				case "ConfirmNewPIN": {
-					this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
+				case "EnterPIN": {
+						this.logColorText(logInfoColor,"App launched and awaiting for login.");
+						// In Enter PIN page, do nothing
+						break;
+				}
+				case "MerchantPassword": {
+					this.merchantPassword(0, (String) this.getCapabilities().getCapability("MerchantPassword"));
 					break;					
+				}
+				case "MerchantSignIn": {
+					this.merchantSignin(0, (String) this.getCapabilities().getCapability("MerchantID"));
+					// First time merchant registration page, entering merchant credentials
+					// potential problem: taking too long to register, needs to add more checks and logics later
+					break;
+				}
+				case "PaymentAcceptanceSetup": {
+					this.clickButton(0, "PaymentAcceptanceSetupContinue");break;
+					// Provision page, click continue to start provision
+				}
+				case "ProvisionComplete": {
+					this.clickButton(0, "ProvisionCompleteDone");break;
+					//Provision is done, proceed
+				}
+				case "SignInSelection": {
+					this.clickButton(0, (String) this.getCapabilities().getCapability("Username")); break;
+					// Have multiple user to select from, select the user specified in Config file to advance to Enter PIN page
+				}
+				case "UpdateRequired": {
+					this.clickButton(0, "UpdateRequiredUpdatenow"); break;
+				}
+
+				case "UpdatingSecureElement": {
+					Thread.sleep(30000);break;
+					//Under Provisioning, wait for 30 seconds before rechecking progress
 				}
 				default: {
 					System.out.println("This page "+currentPage+ " is not recognized.");
@@ -788,12 +790,13 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		LocalTime startT = LocalTime.now();
 		LocalTime endT = LocalTime.now();
 		int iteration = 0;
-		int waitSec = 1;
-		String page = "";
+		int timeOutSec = defaultTimeOutSec;
+		String page = this.findCurrentPage(0);
+		String previousPage = "";
 		long betweenT = 0;
 		while (iteration<10 ) { //break loop if timed out
 			startT = LocalTime.now();
-			page = this.findCurrentPage(waitSec); //find the current page and decide action based on it
+			page = this.waitUntilNewPage(timeOutSec,page); //find the current page and decide action based on it
 			if (page.equals(targetPage)) {
 				endT = LocalTime.now();	//record processing end time
 				betweenT = ChronoUnit.SECONDS.between(startT, endT);
@@ -981,7 +984,14 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 		return currentPage;
 	}
 	
-	
+	public String waitUntilNewPage (int timeout, String currentPage) throws InterruptedException {
+		LocalTime startT = LocalTime.now();
+		String newPage = this.findCurrentPage(0);
+		while ((currentPage.equals(newPage)) && (ChronoUnit.SECONDS.between(startT, LocalTime.now())<timeout)) {
+			newPage = this.findCurrentPage(1);
+		}
+		return newPage;
+	}
 	
 	
 	

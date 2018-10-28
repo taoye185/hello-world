@@ -44,21 +44,17 @@ public class AutomationMain{
 	public static MWAndroidDriver<?> mobiledriver;
 	static String testManagementFile = ".\\src\\Testcase configuration\\Test Management.csv";
 	static String groupFile = "";
-	static String appFile = "";
-	static String elementFile = "";
-	static String deviceFile = "";
-//	static String groupFile = ".\\src\\Testcase configuration\\Test Group - CBA debug.csv"; 
-//	static String casefile = ".\\src\\Testcase configuration\\Test Case - verify onboard username and password.csv"; 
 	//This configuration file contains all the test cases to be run during the test - QA engineers should update this file
 	//any time test cases changes
-//	static String appFile = ".\\src\\Testcase configuration\\Config - CBA Debug.csv"; 
+	static String appFile = "";
 	//This configuration file contains the app configurations and apk locations - QA engineers should update this file
 	//any time a different app is to be tested.
-//	static String elementFile = ".\\src\\Testcase configuration\\app elements - CBA Pre-Prod Debug.csv"; 
+	static String elementFile = "";
 	//This configuration file contains the URI for all the relevant WebElement that the mobile app contains - QA engineers
 	//should update this file whenever the app is modified in a way such that one or more WebElement has been created or changed
 	//to a new URI.
-//	static String deviceFile = ".\\src\\Testcase configuration\\device list.csv"; 
+	static String deviceFile = "";
+
 	static DesiredCapabilities capabilities = new DesiredCapabilities();
 	
 	@BeforeTest
@@ -173,7 +169,7 @@ public class AutomationMain{
 	    			mobiledriver = new MWAndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), capabilities, elementFile);
 	    			//construct a MWAndroidDriver to allow more flexibility and encapsulation compared to the standard AndroidDriver	
 	    			mobiledriver.logColorText("blue", "Test Case: " + nextCase[0] + " initiated.");
-	    			System.out.println(nextCase[0] + "mobiledriver created.");
+	    			System.out.println(nextCase[0] + " mobiledriver created.");
 	    	        FileReader casefilereader = new FileReader(casefile); 
 	    	        CSVReader casecsvReader = new CSVReader(casefilereader); 
 	    	        String[] nextRecord; 	    			
