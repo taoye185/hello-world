@@ -119,7 +119,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 	private String elementPath;
 	private Vector pages = new Vector();
 	static private String logPassColor ="green";
-	static private String logFailClor ="red";
+	static private String logFailColor ="red";
 	static private String logEmphasisColor ="brown";
 	static private String logInfoColor ="grey";
 	static private String logCaseColor ="blue";
@@ -196,6 +196,7 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			case "merchantSignin": {this.merchantSignin(waitSec, parameters[2]); break;}
 			case "multiplePurchase": {this.multiplePurchase(waitSec, parameters[2],parameters[3],parameters[4],parameters[5],parameters[6],parameters[7] ); break;}
 			//notice for multiplePurchase, variable waitSec represents number of purchases to be made, not seconds to wait
+			case "reachPageByProcess": {this.reachPageByProcess(waitSec, parameters[2], parameters[3]);break;}
 			case "setBooleanValue": {this.setBooleanValue(waitSec, parameters[2],  parameters[3]); break;}
 			case "showSideMenu": {this.showSideMenu(waitSec);break;}
 			case "singlePurchase": {this.singlePurchase(waitSec,parameters[2],parameters[3],parameters[4],parameters[5] ); break;}
@@ -538,8 +539,12 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 					this.clickButton(0, "PaymentAcceptanceSetupContinue");break;
 					// Provision page, click continue to start provision
 				}
-				case "ProvisionComplete": {
-					this.clickButton(0, "ProvisionCompleteDone");break;
+				case "ProvisionUpdateComplete": {
+					this.clickButton(0, "ProvisionUpdateCompleteDone");break;
+					//Provision is done, proceed
+				}
+				case "ProvisionActivateComplete": {
+					this.clickButton(0, "ProvisionActivateCompleteDone");break;
 					//Provision is done, proceed
 				}
 				case "SignInSelection": {
@@ -562,6 +567,137 @@ public class MWAndroidDriver<T extends WebElement> extends AndroidDriver<T> {
 			}
 		}
 
+	}
+	
+	public void loginProcess (String currentPage) throws InterruptedException {
+		switch (currentPage) {
+			case "EnterPIN": {
+				this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
+				this.logColorText(logInfoColor,"User Authentication performed.");
+				break;
+			}
+			case "AllowBatterySettingsChange": {
+				this.clickButton(0, "AllowBatterySettingsChangeContinue");
+				break;
+			}
+			case "AllowTimeoutSettingsChange": {
+				this.clickButton(0, "AllowTimeoutSettingsChangeContinue");
+				break;
+			}
+			case "AndroidDeviceSettings": {
+				this.clickButton(0, "AndroidDeviceSettingsback");
+				break;
+			}
+			case "AndroidAlert": {
+				this.clickButton(0, "AndroidAlertAllow");
+				break;
+			}
+			default: {
+				System.out.println("This page "+currentPage+ " is not recognized.");
+			}
+		}
+	}
+	public void launchProcess (String currentPage) throws InterruptedException {
+/* Pre: This function defines the default actions on each page for the launch process
+ * Post: Depending on the current page the app is at, advance one page towards the end goal
+ */
+		System.out.println("current page in launch process is: " + currentPage);
+		switch (currentPage) {
+			case "ActivatingSecureElement": {
+				Thread.sleep(30000);break;
+				//Under Provisioning, wait for 30 seconds before rechecking progress
+			}
+			case "ConfirmNewPIN": {
+				this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
+				break;					
+			}
+			case "CreateNewPassword": {
+				this.inputText(0, "CreateNewPasswordEnterPassword", (String) this.getCapabilities().getCapability("MerchantNewPassword"));
+				this.inputText(0, "CreateNewPasswordVerifyPassword", (String) this.getCapabilities().getCapability("MerchantNewPassword"));
+				this.clickButton(0, "CreateNewPasswordContinue");
+				break;
+			}
+			case "EnterNewPIN": {
+				this.enterNumPadOK(0, (String) this.getCapabilities().getCapability("MerchantPIN"));
+				break;
+			}
+			case "EnterPIN": {
+					this.logColorText(logInfoColor,"App launched and awaiting for login.");
+					// In Enter PIN page, do nothing
+					break;
+			}
+			case "MerchantPassword": {
+				this.merchantPassword(0, (String) this.getCapabilities().getCapability("MerchantPassword"));
+				break;					
+			}
+			case "MerchantSignIn": {
+				System.out.println("1");
+				this.merchantSignin(0, (String) this.getCapabilities().getCapability("MerchantID"));
+				// First time merchant registration page, entering merchant credentials
+				// potential problem: taking too long to register, needs to add more checks and logics later
+				break;
+			}
+			case "PaymentAcceptanceSetup": {
+				this.clickButton(0, "PaymentAcceptanceSetupContinue");break;
+				// Provision page, click continue to start provision
+			}
+			case "ProvisionActivateComplete": {
+				this.clickButton(0, "ProvisionActivateCompleteDone");break;
+				//Provision is done, proceed
+			}			
+			case "ProvisionUpdateComplete": {
+				this.clickButton(0, "ProvisionUpdateCompleteDone");break;
+				//Provision is done, proceed
+			}
+			case "SignInSelection": {
+				this.clickButton(0, (String) this.getCapabilities().getCapability("Username")); break;
+				// Have multiple user to select from, select the user specified in Config file to advance to Enter PIN page
+			}
+			case "UpdateRequired": {
+				this.clickButton(0, "UpdateRequiredUpdatenow"); break;
+			}
+			case "UpdatingSecureElement": {
+				Thread.sleep(30000);break;
+				//Under Provisioning, wait for 30 seconds before rechecking progress
+			}
+			default: {
+				System.out.println("This page "+currentPage+ " is not recognized.");
+				//current page not one of the above
+			}
+		}	//switch
+	}	//method
+	
+	public String reachPageByProcess (int timeoutIteration,String processName, String targetPage) throws InterruptedException {
+		String currentPage = this.findCurrentPage(0);
+		String previousPage = "";
+		int iteration = 0;
+		while ((!currentPage.equals(targetPage)) && (iteration<timeoutIteration)) {
+			if (previousPage.equals(currentPage)) {
+				System.out.println(previousPage + " is equal to " + currentPage + ", do nothing");
+				iteration ++;
+			}
+
+			else {
+				switch (processName) {
+					case "launch": {
+						this.launchProcess(currentPage);
+						break;
+					}
+					case "login": {
+						this.loginProcess(currentPage);
+						break;
+					}
+					default: {
+						this.logColorText(logFailColor, "Process Undefined: Please check csv file used correct process name.");
+						return currentPage;
+					}
+				}
+			}		
+			previousPage = currentPage;
+			currentPage = this.findCurrentPage(1); //decide what to do depending on which page the user is on
+
+		}
+		return currentPage;
 	}
 	
 	public String findCurrentPage(int waitSec) throws InterruptedException {
