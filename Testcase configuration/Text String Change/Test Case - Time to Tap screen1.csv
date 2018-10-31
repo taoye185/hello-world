@@ -1,6 +1,7 @@
 Method Name, Seconds to Wait, URI, Value, action, AssertOperation, ActualURI, Expected Value
-launch,5,,,,,,
-login,5,,,,,,
+launch,2,,,,,,
+waitUntilPage,120,EnterPIN,,,,,
+login,2,,,,,,
 waitUntilPage,120,Purchase,,,,,
 showSideMenu,0,,,,,,
 clickButton,1,SideMenuSettings,,,,,
@@ -15,7 +16,7 @@ enterNumPadOK,0,200,,,,,
 waitUntilPage,120,TapToPay,,,,,
 test,0,,,,equal,TapToPayTitle,Time to tap
 test,0,,,,equal,TapToPayProcessTitle,Purchase
-test,0,,,,equal,TapToPayPurchaseAmount,$2.00 
+test,0,,,,equal,TapToPayPurchaseAmount,$2.00
 test,0,,,,equal,TapToPayTextBody,Hold card/phone to the back of the device
 clickButton,0,TapToPayCancel,,,,,
 waitUntilPage,120,CancelTransaction,,,,,
