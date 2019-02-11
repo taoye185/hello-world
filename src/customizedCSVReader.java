@@ -1,21 +1,15 @@
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Iterator;
 
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.testng.Reporter;
-
 import com.opencsv.CSVReader;
 
-import io.appium.java_client.MobileElement;
 import io.appium.java_client.remote.MobileCapabilityType;
 
 public class customizedCSVReader {
@@ -24,17 +18,17 @@ public class customizedCSVReader {
  */
 	String filePath;
 	DesiredCapabilities pairing;
-	String[][] temp;
+//	String[][] temp;
 	MWLogger log;
 
 	
-	public customizedCSVReader (String csvFilePath) {
+	public customizedCSVReader (String csvFilePath) throws IOException {
 		filePath = csvFilePath;
 		pairing = new DesiredCapabilities();
 		log = new MWLogger();
 	}
 	
-	public customizedCSVReader () {
+	public customizedCSVReader () throws IOException {
 		filePath = "";
 		pairing = new DesiredCapabilities();
 		log = new MWLogger();
@@ -56,6 +50,23 @@ public class customizedCSVReader {
 	    }
 	    csvReader.close();
 		return pairing; 
+	}
+	
+	public DesiredCapabilities readAndCreateDriver (String path, DesiredCapabilities cap, MWLogger log) throws IOException {
+		FileReader fileReader = new FileReader(path); 
+	    CSVReader csvReader = new CSVReader(fileReader); 
+	    String[] nextRecord; 
+	    int i = 0;
+	    DesiredCapabilities driverCap = new DesiredCapabilities();
+	    while ((nextRecord = csvReader.readNext()) != null) { 
+	     	if (i>0 && nextRecord[0].equals("1")) {		//ignore title row(i==0) and inactive row (nextRecord[0]!=1)
+	     		MWDriver driver = new MWDriver (nextRecord[1], nextRecord[3], cap, log);
+	     		driverCap.setCapability(nextRecord[1], driver);
+	  		} //if
+	        i++;
+	    }
+	    csvReader.close();
+		return driverCap; 
 	}
 	
 	public String returnPairingValue (String key) {
@@ -103,7 +114,7 @@ public class customizedCSVReader {
 		filePath = path;
 	}
 	
-	public void readAndExecuteTestGroup (DesiredCapabilities cap, MWLogger log) throws MalformedURLException, IOException, InterruptedException {
+	public void readAndExecuteTestGroup (DesiredCapabilities cap, DesiredCapabilities driver, MWLogger log) throws MalformedURLException, IOException, InterruptedException {
 /*	Pre: cap is a DesiredCapability with the relevant configurations already set correctly.
  *  path is a valid relative filepath that the corresponding configuration file would be read
 * 	Post: The configuration settings are read and stored in the "paring" DesiredCapabilities
@@ -112,12 +123,13 @@ public class customizedCSVReader {
         CSVReader csvReader = new CSVReader(filereader); 
         String[] nextCase; 
         int caseRow = 0;
-        MWDriver mwd = new MWDriver (cap, log);
+//        MWDriver mwd = new MWDriver (cap, log);
+        log.initiateReport(cap);
         while ((nextCase = csvReader.readNext()) != null) { 
             if (caseRow > 0 && (nextCase[0].equals("1"))) { 	            //unless it is title row, construct and execute the method
             	String casefile = nextCase[2];
             	
-//            	MWDriver mwd = new MWDriver (cap, log);
+
  /*
             	MWAndroidDriver androidMobileDriver = null;
             	if (cap.getCapability("Android") != null) {
@@ -133,12 +145,13 @@ public class customizedCSVReader {
     	        int row = 0;
     	        while ((nextRecord = casecsvReader.readNext()) != null) { 
     	            if (row > 0 && (nextRecord[0].equals("1"))) { 	            //unless it is title row, construct and execute the method
+    	            	MWDriver mwd = (MWDriver) driver.getCapability(nextRecord[1]);
     	            	switch (nextRecord[2]) {
-    	            	case "open": {
+/*    	            	case "open": {
     	            		mwd = new MWDriver (cap, log);
     	            	}
-    	            	case "close": {
-    	            		mwd.close(nextRecord[1]);
+*/    	            	case "close": {
+    	            		mwd.close();
     	            	}
     	            	default: {
     	    	            mwd.testScenarioConstructor(nextRecord); 
@@ -151,7 +164,7 @@ public class customizedCSVReader {
     	            row++;
     	        } 
     	        casecsvReader.close();
-    			log.logColorText("blue", "Test Case: " + nextCase[1] + " completed.");
+    			log.logColorText(log.getLogCaseColor(), "Test Case: " + nextCase[1] + " completed.");
 //    	        Reporter.log("<font color='blue'>Test Case: " + nextCase[0] + " completed.</font>");
     			log.report("-----------------------------------<br>");
 //    			androidMobileDriver.quit();
@@ -161,10 +174,12 @@ public class customizedCSVReader {
             caseRow++;
         } 
         csvReader.close();	
-        mwd.close("Android");
+ //       mwd.close();
+ //       log.publishReport();
  //       this.test(mwd);
 	}
-	
+
+	/*
 	public void test(MWDriver mwd) throws IOException {
 		
 		String fileName = ".\\Test CSV.csv";
@@ -191,6 +206,18 @@ catch (Exception e) {
 				
 			}	//try
 	}
+	*/
+
+	public void close(DesiredCapabilities driver, MWLogger log) throws IOException {
+
+		Iterator<Object> dr =  driver.asMap().values().iterator();
+		while (dr.hasNext()) {				//create an ElementList containing all pages
+			((MWDriver)dr.next()).close();
+		}
+        log.publishReport();
+	}
+	
+	
 	
 	public DesiredCapabilities[] readElementFile (String filePath) throws IOException {
 		DesiredCapabilities elements = new DesiredCapabilities();
@@ -203,11 +230,12 @@ catch (Exception e) {
         while ((nextRecord = csvReader.readNext()) != null) { 
         	nextRecord = this.padArray(nextRecord, 8);
         	if(i>0) {
-        		pageElement pe = new pageElement(nextRecord);
+        		pageElement pe = new pageElement(nextRecord, log);
         		elements.setCapability(nextRecord[0], pe);
         		//establish the ElementName->ElementXPath mapping
         		if (!page.asMap().containsKey(nextRecord[2])) {
-        			mobilePage newPage = new mobilePage(nextRecord[2], pe);
+ //       			log.logFile("pe is: " +pe.getID());
+        			mobilePage newPage = new mobilePage(nextRecord[2], pe, log);
         			page.setCapability(nextRecord[2], newPage);
   //      			pageName.put(nextRecord[2], newPage);
         			//establish the PageName -> mobilePage object mapping
@@ -244,9 +272,10 @@ catch (Exception e) {
 	
 	
 	
-	public void writeElementFile (String filePath, DesiredCapabilities cap) throws IOException {
+	public void writeElementFile (String filePath, ElementList page) throws IOException {
+		log.logConsole("writeElement is called");
 		DesiredCapabilities elements = new DesiredCapabilities();
-		DesiredCapabilities page = new DesiredCapabilities();
+//		DesiredCapabilities page = new DesiredCapabilities();
 		
         FileReader filereader = new FileReader(filePath);  
         CSVReader csvReader = new CSVReader(filereader); 
@@ -261,7 +290,7 @@ catch (Exception e) {
         	output += this.writeArrayAsCSV(nextRecord,7);
         	if(i>0 && (nextRecord[5].equals("yes"))) {
         		int weight=0;
-        		
+ /*       		
         		if(nextRecord.length>=8) {
         			if (!nextRecord[7].equals(null)) {
         				if(!nextRecord[7].equals("")) {
@@ -270,7 +299,12 @@ catch (Exception e) {
         			}
 
         		}
-        		weight += ((mobilePage) cap.getCapability(nextRecord[2])).returnCount();
+*/
+        		mobilePage tempPage = (mobilePage) page.getElement(nextRecord[2]);
+        		if (!tempPage.equals(null)) {
+        			weight = tempPage.returnCount();
+        		}
+//        		weight += ((mobilePage) cap.getCapability(nextRecord[2])).returnCount();
         		log.logConsole("weight is: " + weight);
         		output = output  + weight;
  
@@ -287,6 +321,7 @@ catch (Exception e) {
 		wr.write(output);
 		wr.flush();
 		log.logConsole(filePath + "has been written.");
+		wr.close();
 	}
 	
 	public String writeArrayAsCSV (String[] array, int desiredLength) {
